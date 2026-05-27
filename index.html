@@ -424,16 +424,16 @@
       <h2>Партнёр</h2>
       <div class="field">
         <label>Название</label>
-        <input type="text" id="f-partner" placeholder="Naryn" />
+        <input type="text" id="f-partner" placeholder="Название заведения" />
       </div>
       <div class="field-row two">
         <div class="field">
           <label>Имя ЛПР</label>
-          <input type="text" id="f-lpr" placeholder="Адиль" />
+          <input type="text" id="f-lpr" placeholder="Имя" />
         </div>
         <div class="field">
           <label>Должность</label>
-          <input type="text" id="f-lprTitle" placeholder="директор" />
+          <input type="text" id="f-lprTitle" placeholder="директор / собственник" />
         </div>
       </div>
       <div class="field">
@@ -521,18 +521,19 @@
       </div>
 
       <h2>Менеджер</h2>
+      <div class="hint">Эти поля видит партнёр в КП. Заполни один раз — настройки сохранятся в браузере.</div>
       <div class="field">
-        <label>ФИО</label>
-        <input type="text" id="f-manager" placeholder="Тен Александр Сергеевич" />
+        <label>ФИО менеджера</label>
+        <input type="text" id="f-manager" placeholder="Фамилия Имя Отчество" />
       </div>
       <div class="field-row two">
         <div class="field">
-          <label>Инициалы (для аватара)</label>
-          <input type="text" id="f-initials" maxlength="2" placeholder="ТА" />
+          <label>Инициалы для аватара</label>
+          <input type="text" id="f-initials" maxlength="2" placeholder="авто" />
         </div>
         <div class="field">
           <label>Телефон</label>
-          <input type="tel" id="f-phone" placeholder="+7 705 329 33 11" />
+          <input type="tel" id="f-phone" placeholder="+7 ___ ___ __ __" />
         </div>
       </div>
     </aside>
@@ -561,19 +562,19 @@ const DEFAULTS = {
     city: "Алматы"
   },
   partner: {
-    name: "Naryn",
-    lpr: "Адиль",
-    lprTitle: "директор",
+    name: "Демо-партнёр",
+    lpr: "",
+    lprTitle: "",
     points: 1
   },
   business: {
-    turnover: 7000000,
+    turnover: 5000000,
     avgCheck: 5000,
     commission: 30
   },
   products: {
     delivery:  { enabled: true,  price: 60000 },
-    autoPay:   { enabled: true,  price: 30000 },
+    autoPay:   { enabled: false, price: 30000 },
     noWaiter:  { enabled: false, price: 60000 },
     loyalty:   { enabled: false, price: 60000 },
     noCashier: { enabled: false, price: 60000 }
@@ -581,9 +582,9 @@ const DEFAULTS = {
   setup: 50000,
   acquiring: { kaspi: 0, otherCards: 2 },
   manager: {
-    name: "Тен Александр Сергеевич",
-    initials: "ТА",
-    phone: "+7 705 329 33 11"
+    name: "",
+    initials: "",
+    phone: ""
   }
 };
 
@@ -850,6 +851,35 @@ function compute() {
   };
 }
 
+/* ---------- Contact block ---------- */
+function renderContact() {
+  const name = state.manager.name?.trim() || "";
+  const phone = state.manager.phone?.trim() || "";
+  let initials = state.manager.initials?.trim();
+  if (!initials && name) {
+    initials = name.split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase();
+  }
+  if (!initials) initials = "СР";
+
+  const nameLine = name
+    ? escapeHtml(name)
+    : `<span style="color:var(--sr-muted);font-weight:400">Заполни «ФИО менеджера» в форме слева</span>`;
+  const phoneLine = phone
+    ? escapeHtml(phone)
+    : `<span style="color:var(--sr-muted);font-weight:400">Заполни «Телефон» в форме слева</span>`;
+
+  return `
+    <div class="contact">
+      <div class="av">${escapeHtml(initials)}</div>
+      <div>
+        <b>Ваш персональный менеджер</b>
+        <div class="name">${nameLine}</div>
+        <div class="phone">${phoneLine}</div>
+      </div>
+    </div>
+  `;
+}
+
 /* ---------- Renderer ---------- */
 function render() {
   const c = compute();
@@ -1052,14 +1082,7 @@ function render() {
 
       ${sections}
 
-      <div class="contact">
-        <div class="av">${escapeHtml(state.manager.initials || "СР")}</div>
-        <div>
-          <b>Ваш персональный менеджер</b>
-          <div class="name">${escapeHtml(state.manager.name)}</div>
-          <div class="phone">${escapeHtml(state.manager.phone)}</div>
-        </div>
-      </div>
+      ${renderContact()}
 
       <footer class="kp-foot">
         <div>Smart Restaurant · часть Freedom Корпорации · ${escapeHtml(state.meta.city)}</div>
