@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Генератор КП — Smart Restaurant</title>
+<style>
+  /* ========== Brand variables (preview) ========== */
+  :root {
+    --sr-green: #1a7d4d;
+    --sr-green-dark: #0f5b37;
+    --sr-green-soft: #e8f3ec;
+    --sr-green-line: #b9dcc6;
+    --sr-ink: #1d2630;
+    --sr-ink-soft: #4a5562;
+    --sr-muted: #748190;
+    --sr-bg: #f5f7f6;
+    --sr-border: #e3e7ea;
+
+    /* App UI */
+    --ui-bg: #f4f5f7;
+    --ui-surface: #ffffff;
+    --ui-border: #e1e4e8;
+    --ui-text: #1d2630;
+    --ui-text-soft: #5a6573;
+    --ui-accent: #1a7d4d;
+    --ui-accent-soft: #e8f3ec;
+    --ui-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 12px rgba(15, 23, 42, .04);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    background: var(--ui-bg);
+    color: var(--ui-text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ========== App shell ========== */
+  .app {
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+  }
+  .app-header {
+    background: var(--ui-surface);
+    border-bottom: 1px solid var(--ui-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    gap: 12px;
+  }
+  .app-header .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .app-header .brand .mark {
+    width: 28px; height: 28px;
+    background: var(--ui-accent); color: white;
+    font-weight: 800; font-size: 11px;
+    border-radius: 6px;
+    display: grid; place-items: center;
+    letter-spacing: -.5px;
+  }
+  .app-header .brand .sub {
+    color: var(--ui-text-soft); font-weight: 500; font-size: 12px; margin-left: 4px;
+  }
+  .toolbar {
+    display: flex; gap: 8px;
+  }
+  .btn {
+    border: 1px solid var(--ui-border);
+    background: var(--ui-surface);
+    color: var(--ui-text);
+    font: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .btn:hover { background: var(--ui-bg); }
+  .btn.primary {
+    background: var(--ui-accent); color: white; border-color: var(--ui-accent);
+  }
+  .btn.primary:hover { background: var(--sr-green-dark); border-color: var(--sr-green-dark); }
+  .btn.ghost { background: transparent; }
+
+  .app-body {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    min-height: 0;
+  }
+
+  /* ========== Form pane ========== */
+  .form-pane {
+    background: var(--ui-surface);
+    border-right: 1px solid var(--ui-border);
+    overflow-y: auto;
+    padding: 16px 18px 80px;
+  }
+  .form-pane h2 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ui-text-soft);
+    margin: 18px 0 8px;
+  }
+  .form-pane h2:first-child { margin-top: 4px; }
+
+  .field { margin-bottom: 10px; }
+  .field label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ui-text-soft);
+    margin-bottom: 4px;
+  }
+  .field input[type=text],
+  .field input[type=number],
+  .field input[type=date],
+  .field input[type=tel] {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--ui-border);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 3px var(--ui-accent-soft);
+  }
+  .field-row { display: grid; gap: 10px; }
+  .field-row.two { grid-template-columns: 1fr 1fr; }
+  .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .product {
+    display: grid;
+    grid-template-columns: 22px 1fr 110px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--ui-border);
+    border-radius: 7px;
+    margin-bottom: 6px;
+    background: var(--ui-surface);
+    transition: background .12s, border-color .12s;
+  }
+  .product.on {
+    background: var(--ui-accent-soft);
+    border-color: var(--sr-green-line);
+  }
+  .product input[type=checkbox] {
+    width: 16px; height: 16px;
+    accent-color: var(--ui-accent);
+    cursor: pointer;
+    margin: 0;
+  }
+  .product .p-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .product .p-desc {
+    font-size: 11px;
+    color: var(--ui-text-soft);
+    font-weight: 400;
+  }
+  .product input[type=number] {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--ui-border);
+    border-radius: 5px;
+    font: inherit;
+    font-size: 12.5px;
+    text-align: right;
+    background: white;
+  }
+  .product input[type=number]:focus {
+    outline: none;
+    border-color: var(--ui-accent);
+  }
+
+  /* ========== Preview pane ========== */
+  .preview-pane {
+    overflow-y: auto;
+    padding: 24px;
+    background: var(--ui-bg);
+  }
+  .preview-shell {
+    max-width: 820px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 4px;
+    box-shadow: var(--ui-shadow);
+    min-height: 1120px;
+  }
+
+  /* ========== Preview content (matches printed KP) ========== */
+  .preview-shell .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 50px 40px;
+    color: var(--sr-ink);
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+  .preview-shell header.kp-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--sr-green);
+    margin-bottom: 22px;
+  }
+  .preview-shell .logo { display: flex; align-items: center; gap: 10px; }
+  .preview-shell .logo-mark {
+    width: 40px; height: 40px;
+    background: var(--sr-green); color: white;
+    font-weight: 800; font-size: 14px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+  }
+  .preview-shell .logo-title { font-weight: 700; font-size: 13pt; line-height: 1.1; }
+  .preview-shell .logo-sub   { font-size: 8.5pt; color: var(--sr-muted); margin-top: 2px; }
+  .preview-shell .kp-meta { text-align: right; font-size: 8.5pt; line-height: 1.5; }
+  .preview-shell .kp-meta b { display: block; font-weight: 700; color: var(--sr-ink); }
+
+  .preview-shell h1.kp-title {
+    font-size: 20pt; font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
+    line-height: 1.15;
+  }
+  .preview-shell .kp-addressee { font-size: 9.5pt; color: var(--sr-ink-soft); margin: 0 0 18px; }
+  .preview-shell .kp-addressee b { color: var(--sr-ink); }
+
+  .preview-shell h2.sec {
+    font-size: 11.5pt; font-weight: 700;
+    margin: 18px 0 8px;
+    padding-left: 10px;
+    border-left: 3px solid var(--sr-green);
+    line-height: 1.2;
+  }
+  .preview-shell p { margin: 0 0 8px; }
+
+  .preview-shell .punch {
+    background: var(--sr-green-soft);
+    border: 1px solid var(--sr-green-line);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 0 0 14px;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+  .preview-shell .punch b { color: var(--sr-green-dark); }
+
+  .preview-shell .metrics {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin: 0 0 16px;
+  }
+  .preview-shell .metric {
+    background: var(--sr-green-soft);
+    border: 1px solid var(--sr-green-line);
+    border-radius: 8px;
+    padding: 10px 8px; text-align: center;
+  }
+  .preview-shell .metric .v { font-size: 16pt; font-weight: 800; color: var(--sr-green-dark); letter-spacing: -0.5px; line-height: 1.1; }
+  .preview-shell .metric .l { font-size: 7.5pt; color: var(--sr-ink-soft); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+  .preview-shell .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin: 0 0 14px;
+  }
+  .preview-shell .compare > div { border-radius: 8px; padding: 12px 14px; border: 1px solid; font-size: 9.5pt; }
+  .preview-shell .compare .now  { background: #fdf6f6; border-color: #f1d6d6; }
+  .preview-shell .compare .with { background: var(--sr-green-soft); border-color: var(--sr-green-line); }
+  .preview-shell .compare h4 { font-size: 10pt; font-weight: 700; margin: 0 0 8px; }
+  .preview-shell .compare .row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed rgba(0,0,0,.08); }
+  .preview-shell .compare .row:last-child { border-bottom: 0; }
+  .preview-shell .compare .row .label { color: var(--sr-ink-soft); }
+  .preview-shell .compare .row .v { font-weight: 700; }
+  .preview-shell .compare .total { margin-top: 4px; padding-top: 6px; border-top: 2px solid currentColor; }
+  .preview-shell .compare .total .v { font-size: 12pt; }
+
+  .preview-shell table.tbl {
+    width: 100%; border-collapse: collapse;
+    font-size: 9.5pt; margin: 0 0 12px;
+  }
+  .preview-shell table.tbl th, .preview-shell table.tbl td {
+    padding: 7px 10px; text-align: left;
+    border-bottom: 1px solid var(--sr-border);
+  }
+  .preview-shell table.tbl th {
+    font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--sr-muted); font-weight: 700; background: var(--sr-bg);
+  }
+  .preview-shell table.tbl tr.row-hi td { background: var(--sr-green-soft); font-weight: 700; color: var(--sr-green-dark); }
+  .preview-shell table.tbl td.num, .preview-shell table.tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .preview-shell ul.tight { padding-left: 0; margin: 0 0 10px; list-style: none; }
+  .preview-shell ul.tight li {
+    padding: 2px 0 2px 18px;
+    position: relative;
+    font-size: 10pt;
+  }
+  .preview-shell ul.tight li::before {
+    content: "•"; color: var(--sr-green); font-weight: 700;
+    position: absolute; left: 4px; top: 1px; font-size: 13pt; line-height: 1;
+  }
+  .preview-shell ul.tight b { color: var(--sr-ink); }
+
+  .preview-shell .row-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 14px; }
+  .preview-shell .mini-h { font-weight: 700; font-size: 10pt; margin: 0 0 6px; color: var(--sr-green-dark); }
+
+  .preview-shell .contact {
+    border: 1px solid var(--sr-green-line);
+    background: var(--sr-green-soft);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 14px;
+  }
+  .preview-shell .contact .av {
+    width: 42px; height: 42px;
+    background: var(--sr-green); color: white;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 13pt; font-weight: 800;
+    flex: 0 0 auto;
+  }
+  .preview-shell .contact b { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sr-ink-soft); display: block; margin-bottom: 1px; font-weight: 700; }
+  .preview-shell .contact .name { font-size: 10.5pt; font-weight: 700; }
+  .preview-shell .contact .phone { font-size: 10.5pt; color: var(--sr-green-dark); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .preview-shell footer.kp-foot {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid var(--sr-border);
+    display: flex; justify-content: space-between;
+    font-size: 7.5pt; color: var(--sr-muted);
+  }
+
+  .preview-shell .note { font-size: 8.5pt; color: var(--sr-muted); margin: 4px 0 12px; line-height: 1.4; }
+
+  /* ========== Print ========== */
+  @page { size: A4 portrait; margin: 0; }
+  @media print {
+    body { background: white; }
+    .app-header, .form-pane { display: none !important; }
+    .app, .app-body { display: block; height: auto; }
+    .preview-pane { padding: 0; background: white; overflow: visible; }
+    .preview-shell { max-width: none; box-shadow: none; min-height: auto; border-radius: 0; }
+    .preview-shell .page { padding: 14mm 16mm; max-width: none; margin: 0; }
+  }
+
+  /* ========== Misc ========== */
+  .hint {
+    font-size: 11px;
+    color: var(--ui-text-soft);
+    background: var(--ui-bg);
+    border: 1px dashed var(--ui-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    line-height: 1.45;
+  }
+  .empty-state {
+    color: var(--sr-muted);
+    text-align: center;
+    padding: 60px 24px;
+    font-size: 11pt;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="mark">SR</div>
+      <div>Генератор КП <span class="sub">Smart Restaurant</span></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="btn-reset" title="Очистить форму и localStorage">Сбросить</button>
+      <button class="btn" id="btn-download">Скачать HTML</button>
+      <button class="btn primary" id="btn-print">Печать в PDF</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- ========= FORM ========= -->
+    <aside class="form-pane">
+      <div class="hint">
+        Заполняй поля — preview справа обновляется на лету. Чтобы получить PDF — нажми «Печать в PDF» и выбери в диалоге «Сохранить как PDF».
+      </div>
+
+      <h2>Шапка КП</h2>
+      <div class="field-row three">
+        <div class="field">
+          <label>Номер КП</label>
+          <input type="text" id="f-kpNumber" />
+        </div>
+        <div class="field">
+          <label>Дата</label>
+          <input type="date" id="f-date" />
+        </div>
+        <div class="field">
+          <label>Город</label>
+          <input type="text" id="f-city" />
+        </div>
+      </div>
+
+      <h2>Партнёр</h2>
+      <div class="field">
+        <label>Название</label>
+        <input type="text" id="f-partner" placeholder="Naryn" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Имя ЛПР</label>
+          <input type="text" id="f-lpr" placeholder="Адиль" />
+        </div>
+        <div class="field">
+          <label>Должность</label>
+          <input type="text" id="f-lprTitle" placeholder="директор" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Количество точек</label>
+        <input type="number" id="f-points" min="1" />
+      </div>
+
+      <h2>Бизнес-параметры</h2>
+      <div class="field">
+        <label>Оборот доставки в месяц (₸)</label>
+        <input type="number" id="f-turnover" min="0" step="100000" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Средний чек (₸)</label>
+          <input type="number" id="f-avgCheck" min="0" />
+        </div>
+        <div class="field">
+          <label>Комиссия агрегатора (%)</label>
+          <input type="number" id="f-commission" min="0" max="100" step="1" />
+        </div>
+      </div>
+
+      <h2>Продукты пакета</h2>
+
+      <label class="product" data-key="delivery">
+        <input type="checkbox" data-product="delivery" />
+        <span>
+          <div class="p-name">SR Delivery</div>
+          <div class="p-desc">Свой канал доставки без комиссии агрегаторам</div>
+        </span>
+        <input type="number" data-price="delivery" min="0" step="5000" />
+      </label>
+
+      <label class="product" data-key="autoPay">
+        <input type="checkbox" data-product="autoPay" />
+        <span>
+          <div class="p-name">Авто-подтягивание счёта</div>
+          <div class="p-desc">QR-оплата счёта в зале, гость платит со смартфона</div>
+        </span>
+        <input type="number" data-price="autoPay" min="0" step="5000" />
+      </label>
+
+      <label class="product" data-key="noWaiter">
+        <input type="checkbox" data-product="noWaiter" />
+        <span>
+          <div class="p-name">Без Официанта</div>
+          <div class="p-desc">QR-меню в зале, гость заказывает с телефона</div>
+        </span>
+        <input type="number" data-price="noWaiter" min="0" step="5000" />
+      </label>
+
+      <label class="product" data-key="loyalty">
+        <input type="checkbox" data-product="loyalty" />
+        <span>
+          <div class="p-name">Лояльность</div>
+          <div class="p-desc">Своя база клиентов, бонусы, рассылки</div>
+        </span>
+        <input type="number" data-price="loyalty" min="0" step="5000" />
+      </label>
+
+      <label class="product" data-key="noCashier">
+        <input type="checkbox" data-product="noCashier" />
+        <span>
+          <div class="p-name">Без Кассира</div>
+          <div class="p-desc">Касса на смартфоне у официанта, минус очереди</div>
+        </span>
+        <input type="number" data-price="noCashier" min="0" step="5000" />
+      </label>
+
+      <h2>Прочее</h2>
+      <div class="field">
+        <label>Подключение на точку, разово (₸)</label>
+        <input type="number" id="f-setup" min="0" step="5000" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Эквайринг Kaspi (%)</label>
+          <input type="number" id="f-kaspi" min="0" step="0.1" />
+        </div>
+        <div class="field">
+          <label>Эквайринг прочие карты (%)</label>
+          <input type="number" id="f-otherCards" min="0" step="0.1" />
+        </div>
+      </div>
+
+      <h2>Менеджер</h2>
+      <div class="field">
+        <label>ФИО</label>
+        <input type="text" id="f-manager" placeholder="Тен Александр Сергеевич" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Инициалы (для аватара)</label>
+          <input type="text" id="f-initials" maxlength="2" placeholder="ТА" />
+        </div>
+        <div class="field">
+          <label>Телефон</label>
+          <input type="tel" id="f-phone" placeholder="+7 705 329 33 11" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- ========= PREVIEW ========= -->
+    <main class="preview-pane">
+      <div class="preview-shell" id="preview">
+        <div class="empty-state">Заполни форму слева — здесь появится КП.</div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<script>
+/* ========================================================================
+   Генератор КП — single-file vanilla JS app
+   ======================================================================== */
+
+const STORAGE_KEY = "kp-generator-state-v1";
+
+const DEFAULTS = {
+  meta: {
+    kpNumber: "КП-SR-2026-Demo",
+    date: new Date().toISOString().slice(0, 10),
+    city: "Алматы"
+  },
+  partner: {
+    name: "Naryn",
+    lpr: "Адиль",
+    lprTitle: "директор",
+    points: 1
+  },
+  business: {
+    turnover: 7000000,
+    avgCheck: 5000,
+    commission: 30
+  },
+  products: {
+    delivery:  { enabled: true,  price: 60000 },
+    autoPay:   { enabled: true,  price: 30000 },
+    noWaiter:  { enabled: false, price: 60000 },
+    loyalty:   { enabled: false, price: 60000 },
+    noCashier: { enabled: false, price: 60000 }
+  },
+  setup: 50000,
+  acquiring: { kaspi: 0, otherCards: 2 },
+  manager: {
+    name: "Тен Александр Сергеевич",
+    initials: "ТА",
+    phone: "+7 705 329 33 11"
+  }
+};
+
+/* ---------- Product copy ---------- */
+const PRODUCT_LABELS = {
+  delivery: "SR Delivery",
+  autoPay: "Авто-подтягивание",
+  noWaiter: "Без Официанта",
+  loyalty: "Лояльность",
+  noCashier: "Без Кассира"
+};
+
+const PRODUCT_BULLETS = {
+  autoPay: {
+    title: "Эффект «Авто-подтягивание» (зал)",
+    intro: "Гость в зале сканирует QR на столе — его открытый счёт автоматически подтягивается из кассы на смартфон. Оплачивает картой, Apple Pay или Kaspi прямо в браузере, без приложения. Официант не нужен для счёта и расчёта.",
+    bullets: [
+      "<b>Оборот столов ↑ 10–15 %</b> — гость не ждёт счёт, сдачу и терминал, столы освобождаются быстрее",
+      "<b>Официант освобождён от расчётов</b> — больше времени на сервис и допродажи",
+      "<b>Никаких споров</b> — позиции и сумма видны на экране до оплаты"
+    ]
+  },
+  noWaiter: {
+    title: "Эффект «Без Официанта»",
+    intro: "Гость сканирует QR на столе, выбирает блюда из электронного меню и оплачивает со смартфона. Официант не нужен для приёма заказа и расчёта.",
+    bullets: [
+      "<b>+5–10 %</b> к среднему чеку — видны все позиции, легче добавить десерты и напитки",
+      "<b>+30–40 %</b> к скорости обслуживания на пиках — нет ожидания официанта",
+      "<b>−1 ставка</b> официанта на смене — экономия на ФОТ",
+      "<b>Меньше ошибок</b> в заказах — гость выбирает сам, без устного пересказа"
+    ]
+  },
+  loyalty: {
+    title: "Эффект «Лояльности»",
+    intro: "Своя программа лояльности: гости копят бонусы и возвращаются в твоё заведение, а не уходят к агрегатору. База клиентов остаётся у тебя.",
+    bullets: [
+      "<b>+25–40 %</b> к частоте возвращения постоянных гостей",
+      "<b>База клиентов у тебя</b> — телефоны, email, поведение покупок, а не у Glovo",
+      "<b>Push и SMS-рассылки</b> с акциями напрямую клиенту, без посредников",
+      "<b>Уровни и купоны</b> — настраиваешь правила под свою экономику"
+    ]
+  },
+  noCashier: {
+    title: "Эффект «Без Кассира»",
+    intro: "Касса на смартфоне официанта: открывает счёт, принимает заказ, отбивает чек прямо у стола. Очередей у кассы нет, отдельный кассир не нужен.",
+    bullets: [
+      "<b>−30–50 %</b> очередей в часы пик — расчёт у стола, без подхода к кассе",
+      "<b>Заказ → кухня за 10 секунд</b> — без бега к станции и переписи на бумаге",
+      "<b>−1 ставка</b> кассира при правильной организации смены",
+      "<b>Электронный чек</b> гостю на email или SMS — без бумаги и термоленты"
+    ]
+  }
+};
+
+/* ---------- State ---------- */
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(DEFAULTS);
+    return mergeDeep(structuredClone(DEFAULTS), JSON.parse(raw));
+  } catch (e) {
+    return structuredClone(DEFAULTS);
+  }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function mergeDeep(a, b) {
+  for (const k in b) {
+    if (b[k] && typeof b[k] === "object" && !Array.isArray(b[k])) {
+      a[k] = mergeDeep(a[k] || {}, b[k]);
+    } else {
+      a[k] = b[k];
+    }
+  }
+  return a;
+}
+
+/* ---------- Helpers ---------- */
+function fmtMoney(n) {
+  if (!isFinite(n)) return "0 ₸";
+  return n.toLocaleString("ru-RU").replace(/,/g, " ") + " ₸";
+}
+function fmtMln(n) {
+  const m = n / 1_000_000;
+  if (Math.abs(m) >= 10) return m.toFixed(0) + " млн ₸";
+  return m.toFixed(2).replace(".", ",") + " млн ₸";
+}
+function fmtNum(n) {
+  return Math.round(n).toLocaleString("ru-RU").replace(/,/g, " ");
+}
+function fmtSigned(n) {
+  return (n >= 0 ? "+" : "−") + fmtMoney(Math.abs(n));
+}
+function fmtSignedMln(n) {
+  return (n >= 0 ? "+" : "−") + fmtMln(Math.abs(n));
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function ddmmyyyy(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
+
+/* ---------- Form ↔ state binding ---------- */
+function bindForm() {
+  // simple fields
+  const fields = {
+    "f-kpNumber":   ["meta", "kpNumber"],
+    "f-date":       ["meta", "date"],
+    "f-city":       ["meta", "city"],
+    "f-partner":    ["partner", "name"],
+    "f-lpr":        ["partner", "lpr"],
+    "f-lprTitle":   ["partner", "lprTitle"],
+    "f-points":     ["partner", "points"],
+    "f-turnover":   ["business", "turnover"],
+    "f-avgCheck":   ["business", "avgCheck"],
+    "f-commission": ["business", "commission"],
+    "f-setup":      ["setup"],
+    "f-kaspi":      ["acquiring", "kaspi"],
+    "f-otherCards": ["acquiring", "otherCards"],
+    "f-manager":    ["manager", "name"],
+    "f-initials":   ["manager", "initials"],
+    "f-phone":      ["manager", "phone"]
+  };
+
+  for (const [id, path] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+
+    // initial value
+    setFromPath(el, path);
+
+    el.addEventListener("input", () => {
+      const v = el.type === "number" ? Number(el.value) : el.value;
+      setPath(state, path, v);
+      saveState();
+      render();
+    });
+  }
+
+  // products
+  document.querySelectorAll(".product").forEach(row => {
+    const key = row.dataset.key;
+    const cb = row.querySelector("input[type=checkbox]");
+    const priceInput = row.querySelector("input[type=number]");
+    cb.checked = state.products[key].enabled;
+    priceInput.value = state.products[key].price;
+    row.classList.toggle("on", cb.checked);
+
+    cb.addEventListener("change", () => {
+      state.products[key].enabled = cb.checked;
+      row.classList.toggle("on", cb.checked);
+      saveState();
+      render();
+    });
+    priceInput.addEventListener("input", () => {
+      state.products[key].price = Number(priceInput.value || 0);
+      saveState();
+      render();
+    });
+  });
+
+  // toolbar
+  document.getElementById("btn-print").addEventListener("click", () => window.print());
+  document.getElementById("btn-download").addEventListener("click", downloadHtml);
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    if (!confirm("Сбросить все поля к значениям по умолчанию?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state = structuredClone(DEFAULTS);
+    initFormValues();
+    render();
+  });
+}
+
+function setPath(obj, path, value) {
+  let o = obj;
+  for (let i = 0; i < path.length - 1; i++) o = o[path[i]];
+  o[path[path.length - 1]] = value;
+}
+function getPath(obj, path) {
+  let o = obj;
+  for (const k of path) o = o ? o[k] : undefined;
+  return o;
+}
+function setFromPath(el, path) {
+  const v = getPath(state, path);
+  el.value = v ?? "";
+}
+function initFormValues() {
+  // re-populate all inputs from state
+  document.querySelectorAll(".product").forEach(row => {
+    const key = row.dataset.key;
+    row.querySelector("input[type=checkbox]").checked = state.products[key].enabled;
+    row.querySelector("input[type=number]").value = state.products[key].price;
+    row.classList.toggle("on", state.products[key].enabled);
+  });
+  const map = {
+    "f-kpNumber":   state.meta.kpNumber,
+    "f-date":       state.meta.date,
+    "f-city":       state.meta.city,
+    "f-partner":    state.partner.name,
+    "f-lpr":        state.partner.lpr,
+    "f-lprTitle":   state.partner.lprTitle,
+    "f-points":     state.partner.points,
+    "f-turnover":   state.business.turnover,
+    "f-avgCheck":   state.business.avgCheck,
+    "f-commission": state.business.commission,
+    "f-setup":      state.setup,
+    "f-kaspi":      state.acquiring.kaspi,
+    "f-otherCards": state.acquiring.otherCards,
+    "f-manager":    state.manager.name,
+    "f-initials":   state.manager.initials,
+    "f-phone":      state.manager.phone
+  };
+  for (const [id, v] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) el.value = v ?? "";
+  }
+}
+
+/* ---------- Calculations ---------- */
+function compute() {
+  const s = state;
+  const orders = s.business.avgCheck > 0 ? Math.round(s.business.turnover / s.business.avgCheck) : 0;
+  const lossPerOrder = s.business.avgCheck * (s.business.commission / 100);
+  const aggregatorLoss = orders * lossPerOrder;
+
+  const deliveryAbon = s.products.delivery.enabled ? s.products.delivery.price : 0;
+  const monthlyAbon = Object.entries(s.products)
+    .filter(([_, p]) => p.enabled)
+    .reduce((sum, [_, p]) => sum + p.price, 0);
+
+  const scenarioPcts = [0.30, 0.50, 0.70, 1.00];
+  const scenarios = scenarioPcts.map(p => {
+    const ordersOnOwn = Math.round(orders * p);
+    const savings = ordersOnOwn * lossPerOrder;
+    const net = savings - deliveryAbon;
+    return {
+      pct: Math.round(p * 100),
+      orders: ordersOnOwn,
+      savings,
+      net,
+      netYear: net * 12
+    };
+  });
+
+  return {
+    orders,
+    lossPerOrder,
+    aggregatorLoss,
+    deliveryAbon,
+    monthlyAbon,
+    scenarios,
+    full: scenarios[scenarios.length - 1]
+  };
+}
+
+/* ---------- Renderer ---------- */
+function render() {
+  const c = compute();
+  const enabled = Object.fromEntries(
+    Object.entries(state.products).map(([k, v]) => [k, v.enabled])
+  );
+  const hasDelivery = enabled.delivery;
+  const otherProducts = Object.keys(PRODUCT_BULLETS).filter(k => enabled[k]);
+
+  // Title — list of enabled products
+  const titleProducts = Object.entries(enabled)
+    .filter(([_, on]) => on)
+    .map(([k]) => PRODUCT_LABELS[k])
+    .join(" + ") || "Smart Restaurant";
+
+  // Punch
+  const punchParts = [];
+  if (hasDelivery) {
+    punchParts.push(
+      `<b>SR Delivery</b> возвращает до <b>${fmtSigned(c.full.net)}/мес</b> чистой прибыли с доставки (вместо комиссии агрегаторам ${fmtMln(c.aggregatorLoss)}/мес).`
+    );
+  }
+  if (enabled.autoPay) {
+    punchParts.push(
+      `<b>Авто-подтягивание</b> ускоряет оборот столов в зале: гость сканирует QR, видит счёт на смартфоне и оплачивает за 30 секунд.`
+    );
+  }
+  if (enabled.noWaiter) {
+    punchParts.push(
+      `<b>Без Официанта</b> — гость заказывает и платит по QR со смартфона, без вызова официанта.`
+    );
+  }
+  if (enabled.loyalty) {
+    punchParts.push(
+      `<b>Лояльность</b> возвращает базу клиентов от агрегаторов под твой бренд — рассылки и бонусы.`
+    );
+  }
+  if (enabled.noCashier) {
+    punchParts.push(
+      `<b>Без Кассира</b> убирает очереди — официант принимает оплату прямо у стола со смартфона.`
+    );
+  }
+  const punch = punchParts.length
+    ? punchParts.join(" ")
+    : "Выбери продукты в форме слева — здесь появится punch-line.";
+
+  // Metrics
+  let metricsHtml = "";
+  if (hasDelivery && c.orders > 0) {
+    metricsHtml = `
+      <div class="metrics">
+        <div class="metric"><div class="v">${fmtMln(c.aggregatorLoss)}</div><div class="l">уходит агрегаторам / мес</div></div>
+        <div class="metric"><div class="v">+${fmtMln(c.full.net)}</div><div class="l">чистый эффект Delivery / мес</div></div>
+        <div class="metric"><div class="v">10 дней</div><div class="l">до запуска</div></div>
+      </div>
+    `;
+  } else {
+    metricsHtml = `
+      <div class="metrics">
+        <div class="metric"><div class="v">${fmtMoney(c.monthlyAbon)}</div><div class="l">абонплата / мес</div></div>
+        <div class="metric"><div class="v">${fmtMoney(state.setup)}</div><div class="l">подключение / точка</div></div>
+        <div class="metric"><div class="v">10 дней</div><div class="l">до запуска</div></div>
+      </div>
+    `;
+  }
+
+  // Section index for numbering
+  let secNum = 1;
+  let sections = "";
+
+  // 1. Экономика доставки (only if Delivery)
+  if (hasDelivery && c.orders > 0) {
+    const turnoverLeftNow = state.business.turnover - c.aggregatorLoss;
+    const turnoverLeftSr = state.business.turnover - c.deliveryAbon;
+
+    sections += `
+      <h2 class="sec">${secNum++}. Экономика доставки</h2>
+      <p class="note">База: оборот ${fmtMoney(state.business.turnover)}/мес = ≈ ${fmtNum(c.orders)} заказов × ${fmtMoney(state.business.avgCheck)}. Комиссия агрегаторов ${state.business.commission} %. Абонплата SR Delivery — ${fmtMoney(c.deliveryAbon)}/мес. ${otherProducts.length ? "Остальные продукты пакета окупаются отдельно — см. следующие разделы. " : ""}Цифры подтверждаются на встрече по выпискам.</p>
+      <div class="compare">
+        <div class="now">
+          <h4>Сейчас (агрегаторы)</h4>
+          <div class="row"><span class="label">Заказов в месяц</span><span class="v">≈ ${fmtNum(c.orders)}</span></div>
+          <div class="row"><span class="label">Средний чек</span><span class="v">${fmtMoney(state.business.avgCheck)}</span></div>
+          <div class="row"><span class="label">Комиссия</span><span class="v">${fmtMoney(c.lossPerOrder)} / зак.</span></div>
+          <div class="row total"><span class="label">Остаётся / мес</span><span class="v">${fmtMoney(turnoverLeftNow)}</span></div>
+        </div>
+        <div class="with">
+          <h4>SR Delivery (свой канал)</h4>
+          <div class="row"><span class="label">Заказов в месяц</span><span class="v">≈ ${fmtNum(c.orders)}</span></div>
+          <div class="row"><span class="label">Комиссия агрегатору</span><span class="v">0 ₸</span></div>
+          <div class="row"><span class="label">Абонплата SR Delivery</span><span class="v">${fmtMoney(c.deliveryAbon)} / мес</span></div>
+          <div class="row total"><span class="label">Остаётся / мес</span><span class="v">${fmtMoney(turnoverLeftSr)}</span></div>
+        </div>
+      </div>
+
+      <h2 class="sec">${secNum++}. Сценарии перевода объёма</h2>
+      <p class="note">Чистый эффект: экономия на комиссии (${fmtMoney(c.lossPerOrder)} × заказы) минус абонплата SR Delivery ${fmtMoney(c.deliveryAbon)}/мес.</p>
+      <table class="tbl">
+        <thead><tr>
+          <th>Сценарий</th>
+          <th class="num">Заказов на свой канал</th>
+          <th class="num">Чистый эффект / мес</th>
+          <th class="num">Чистый эффект / год</th>
+        </tr></thead>
+        <tbody>
+          ${c.scenarios.map((s, i) => `
+            <tr${i === 1 ? ' class="row-hi"' : ""}>
+              <td>${i === 0 ? "Консервативный" : i === 1 ? "Базовый — рекомендуем" : i === 2 ? "Амбициозный" : "Полный перевод"} (${s.pct} %)</td>
+              <td class="num">≈ ${fmtNum(s.orders)}</td>
+              <td class="num">${fmtSigned(s.net)}</td>
+              <td class="num">${fmtSignedMln(s.netYear)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Per-product sections
+  for (const k of otherProducts) {
+    const def = PRODUCT_BULLETS[k];
+    sections += `
+      <h2 class="sec">${secNum++}. ${escapeHtml(def.title)}</h2>
+      <p>${def.intro}</p>
+      <ul class="tight">
+        ${def.bullets.map(b => `<li>${b}</li>`).join("")}
+      </ul>
+    `;
+  }
+
+  // Cost section
+  const productRows = Object.entries(state.products)
+    .filter(([_, p]) => p.enabled)
+    .map(([k, p]) => `<tr><td>${escapeHtml(PRODUCT_LABELS[k])}</td><td class="num">${fmtMoney(p.price)} / мес</td></tr>`)
+    .join("");
+
+  sections += `
+    <h2 class="sec">${secNum++}. Стоимость</h2>
+    <table class="tbl">
+      <thead><tr><th>Позиция</th><th class="num">Стоимость</th></tr></thead>
+      <tbody>
+        <tr class="row-hi"><td>Абонплата пакета (${Object.values(state.products).filter(p => p.enabled).length} продукт(а))</td><td class="num">${fmtMoney(c.monthlyAbon)} / мес</td></tr>
+        ${productRows}
+        <tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>
+        <tr><td>Обучение, интеграция с кассой, поддержка 7/7</td><td class="num">Включено</td></tr>
+        <tr><td>Эквайринг Kaspi (QR / Kaspi Pay)</td><td class="num">${state.acquiring.kaspi} %</td></tr>
+        <tr><td>Эквайринг по другим картам (Visa / Mastercard)</td><td class="num">${state.acquiring.otherCards} %</td></tr>
+      </tbody>
+    </table>
+  `;
+
+  // Timeline section
+  sections += `
+    <h2 class="sec">${secNum++}. Сроки и следующий шаг</h2>
+    <div class="row-two">
+      <div>
+        <div class="mini-h">Запуск — 10 рабочих дней</div>
+        <ul class="tight">
+          <li>5–7 дней — интеграция с кассой (iiko / RKeeper / Paloma)</li>
+          <li>2–3 дня — настройка и контент</li>
+          <li>Параллельно — обучение команды</li>
+        </ul>
+      </div>
+      <div>
+        <div class="mini-h">Встреча 30 минут</div>
+        <ul class="tight">
+          <li>Подтвердить цифры по выпискам</li>
+          <li>Подписать договор и зафиксировать дату старта</li>
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const addresseeLine = state.partner.lpr
+    ? `<b>Кому:</b> ${escapeHtml(state.partner.lpr)}${state.partner.lprTitle ? ", " + escapeHtml(state.partner.lprTitle) : ""} «${escapeHtml(state.partner.name)}» &nbsp;·&nbsp; <b>От:</b> Smart Restaurant`
+    : `<b>Кому:</b> «${escapeHtml(state.partner.name)}» &nbsp;·&nbsp; <b>От:</b> Smart Restaurant`;
+
+  const html = `
+    <div class="page">
+      <header class="kp-head">
+        <div class="logo">
+          <div class="logo-mark">SR</div>
+          <div>
+            <div class="logo-title">Smart Restaurant</div>
+            <div class="logo-sub">Часть Freedom Корпорации</div>
+          </div>
+        </div>
+        <div class="kp-meta">
+          <b>Коммерческое предложение</b>
+          № ${escapeHtml(state.meta.kpNumber)} · ${ddmmyyyy(state.meta.date)} · ${escapeHtml(state.meta.city)}
+        </div>
+      </header>
+
+      <h1 class="kp-title">${escapeHtml(titleProducts)}<br/>для «${escapeHtml(state.partner.name)}»</h1>
+      <p class="kp-addressee">${addresseeLine}</p>
+
+      <div class="punch">${punch}</div>
+
+      ${metricsHtml}
+
+      ${sections}
+
+      <div class="contact">
+        <div class="av">${escapeHtml(state.manager.initials || "СР")}</div>
+        <div>
+          <b>Ваш персональный менеджер</b>
+          <div class="name">${escapeHtml(state.manager.name)}</div>
+          <div class="phone">${escapeHtml(state.manager.phone)}</div>
+        </div>
+      </div>
+
+      <footer class="kp-foot">
+        <div>Smart Restaurant · часть Freedom Корпорации · ${escapeHtml(state.meta.city)}</div>
+        <div>${escapeHtml(state.meta.kpNumber)} · ${ddmmyyyy(state.meta.date)}</div>
+      </footer>
+    </div>
+  `;
+
+  document.getElementById("preview").innerHTML = html;
+  document.title = `КП — ${state.partner.name || "Smart Restaurant"}`;
+}
+
+/* ---------- Download standalone HTML ---------- */
+function downloadHtml() {
+  const previewHtml = document.getElementById("preview").innerHTML;
+  // Extract only the preview-related CSS by grabbing the inline <style> and
+  // filtering to the .preview-shell scope. Simpler: inline a known stylesheet.
+  const standalone = buildStandaloneHtml(previewHtml);
+  const blob = new Blob([standalone], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const safe = (state.partner.name || "kp").replace(/[\\/:*?"<>|]/g, "-");
+  a.download = `КП — ${safe}.html`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+
+function buildStandaloneHtml(previewHtml) {
+  // Strip the .preview-shell wrapper class scoping so the file renders standalone
+  const stripped = previewHtml.replace(/preview-shell\s*/g, "");
+
+  // Self-contained stylesheet for the printed KP only
+  const css = `
+    :root{
+      --sr-green:#1a7d4d;--sr-green-dark:#0f5b37;--sr-green-soft:#e8f3ec;
+      --sr-green-line:#b9dcc6;--sr-ink:#1d2630;--sr-ink-soft:#4a5562;
+      --sr-muted:#748190;--sr-bg:#f5f7f6;--sr-border:#e3e7ea;
+    }
+    *{box-sizing:border-box}html,body{margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Arial,sans-serif;color:var(--sr-ink);background:#fff;line-height:1.45;font-size:10.5pt}
+    .page{max-width:760px;margin:0 auto;padding:28px 50px 40px}
+    header.kp-head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:2px solid var(--sr-green);margin-bottom:22px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-mark{width:40px;height:40px;background:var(--sr-green);color:#fff;font-weight:800;font-size:14px;border-radius:8px;display:grid;place-items:center}
+    .logo-title{font-weight:700;font-size:13pt;line-height:1.1}
+    .logo-sub{font-size:8.5pt;color:var(--sr-muted);margin-top:2px}
+    .kp-meta{text-align:right;font-size:8.5pt;line-height:1.5}
+    .kp-meta b{display:block;font-weight:700;color:var(--sr-ink)}
+    h1.kp-title{font-size:20pt;font-weight:800;margin:0 0 4px;letter-spacing:-.3px;line-height:1.15}
+    .kp-addressee{font-size:9.5pt;color:var(--sr-ink-soft);margin:0 0 18px}
+    .kp-addressee b{color:var(--sr-ink)}
+    h2.sec{font-size:11.5pt;font-weight:700;margin:18px 0 8px;padding-left:10px;border-left:3px solid var(--sr-green);line-height:1.2}
+    p{margin:0 0 8px}
+    .punch{background:var(--sr-green-soft);border:1px solid var(--sr-green-line);border-radius:8px;padding:12px 16px;margin:0 0 14px;font-size:10.5pt;line-height:1.5}
+    .punch b{color:var(--sr-green-dark)}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}
+    .metric{background:var(--sr-green-soft);border:1px solid var(--sr-green-line);border-radius:8px;padding:10px 8px;text-align:center}
+    .metric .v{font-size:16pt;font-weight:800;color:var(--sr-green-dark);letter-spacing:-.5px;line-height:1.1}
+    .metric .l{font-size:7.5pt;color:var(--sr-ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+    .compare>div{border-radius:8px;padding:12px 14px;border:1px solid;font-size:9.5pt}
+    .compare .now{background:#fdf6f6;border-color:#f1d6d6}
+    .compare .with{background:var(--sr-green-soft);border-color:var(--sr-green-line)}
+    .compare h4{font-size:10pt;font-weight:700;margin:0 0 8px}
+    .compare .row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed rgba(0,0,0,.08)}
+    .compare .row:last-child{border-bottom:0}
+    .compare .row .label{color:var(--sr-ink-soft)}
+    .compare .row .v{font-weight:700}
+    .compare .total{margin-top:4px;padding-top:6px;border-top:2px solid currentColor}
+    .compare .total .v{font-size:12pt}
+    table.tbl{width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 12px}
+    table.tbl th,table.tbl td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--sr-border)}
+    table.tbl th{font-size:7.5pt;text-transform:uppercase;letter-spacing:.04em;color:var(--sr-muted);font-weight:700;background:var(--sr-bg)}
+    table.tbl tr.row-hi td{background:var(--sr-green-soft);font-weight:700;color:var(--sr-green-dark)}
+    table.tbl td.num,table.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+    ul.tight{padding-left:0;margin:0 0 10px;list-style:none}
+    ul.tight li{padding:2px 0 2px 18px;position:relative;font-size:10pt}
+    ul.tight li::before{content:"•";color:var(--sr-green);font-weight:700;position:absolute;left:4px;top:1px;font-size:13pt;line-height:1}
+    ul.tight b{color:var(--sr-ink)}
+    .row-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 14px}
+    .mini-h{font-weight:700;font-size:10pt;margin:0 0 6px;color:var(--sr-green-dark)}
+    .contact{border:1px solid var(--sr-green-line);background:var(--sr-green-soft);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px;margin-top:14px}
+    .contact .av{width:42px;height:42px;background:var(--sr-green);color:#fff;border-radius:50%;display:grid;place-items:center;font-size:13pt;font-weight:800;flex:0 0 auto}
+    .contact b{font-size:8pt;text-transform:uppercase;letter-spacing:.06em;color:var(--sr-ink-soft);display:block;margin-bottom:1px;font-weight:700}
+    .contact .name{font-size:10.5pt;font-weight:700}
+    .contact .phone{font-size:10.5pt;color:var(--sr-green-dark);font-weight:600;font-variant-numeric:tabular-nums}
+    footer.kp-foot{margin-top:20px;padding-top:10px;border-top:1px solid var(--sr-border);display:flex;justify-content:space-between;font-size:7.5pt;color:var(--sr-muted)}
+    .note{font-size:8.5pt;color:var(--sr-muted);margin:4px 0 12px;line-height:1.4}
+    @page{size:A4 portrait;margin:0}
+    @media print{body{background:#fff}.page{padding:14mm 16mm;max-width:none}}
+  `;
+
+  return `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>КП — ${escapeHtml(state.partner.name)}</title>
+<style>${css}</style>
+</head>
+<body>
+${stripped}
+</body>
+</html>`;
+}
+
+/* ---------- Init ---------- */
+function init() {
+  initFormValues();
+  bindForm();
+  render();
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+
+</body>
+</html>
