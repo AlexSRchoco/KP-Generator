@@ -572,22 +572,22 @@
 
       <h2>Freedom-счёт</h2>
       <div class="hint">
-        Если партнёр открывает Freedom-счёт — подключение бесплатно, и он получает AI-рассылки и аналитику в подарок.
+        Если партнёр открывает Freedom-счёт — подключение и абонплата бесплатно, и он получает AI-рассылки и аналитику в подарок.
       </div>
       <label class="product" data-key="freedomAccount">
         <input type="checkbox" id="f-freedom" />
         <span>
           <div class="p-name">Партнёр открывает Freedom-счёт</div>
-          <div class="p-desc">Подключение 0 ₸ + AI-рассылки и аналитика</div>
+          <div class="p-desc">Подключение и абонплата 0 ₸ + AI-рассылки и аналитика</div>
         </span>
-        <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">−50 000 ₸</span>
+        <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">обнуляет всё</span>
       </label>
 
       <h2>Прочее</h2>
       <div class="field">
         <label>Подключение на точку, разово (₸)</label>
         <input type="number" id="f-setup" min="0" step="5000" />
-        <div class="hint" style="margin-top:6px">Если Freedom-счёт включён выше — это поле игнорируется, в КП будет 0 ₸.</div>
+        <div class="hint" style="margin-top:6px">Если Freedom-счёт включён выше — подключение и абонплата в КП обнуляются.</div>
       </div>
       <div class="field-row two">
         <div class="field">
@@ -918,16 +918,20 @@ function initFormValues() {
 }
 
 /* ---------- Calculations ---------- */
+function effectivePrice(p) {
+  return state.freedomAccount?.enabled ? 0 : (p?.price ?? 0);
+}
+
 function compute() {
   const s = state;
   const orders = s.business.avgCheck > 0 ? Math.round(s.business.turnover / s.business.avgCheck) : 0;
   const lossPerOrder = s.business.avgCheck * (s.business.commission / 100);
   const aggregatorLoss = orders * lossPerOrder;
 
-  const deliveryAbon = s.products.delivery.enabled ? s.products.delivery.price : 0;
+  const deliveryAbon = s.products.delivery.enabled ? effectivePrice(s.products.delivery) : 0;
   const monthlyAbon = Object.entries(s.products)
     .filter(([_, p]) => p.enabled)
-    .reduce((sum, [_, p]) => sum + p.price, 0);
+    .reduce((sum, [_, p]) => sum + effectivePrice(p), 0);
 
   const scenarioPcts = [0.30, 0.50, 0.70, 1.00];
   const scenarios = scenarioPcts.map(p => {
@@ -1027,7 +1031,7 @@ function render() {
   }
   if (state.freedomAccount?.enabled) {
     punchParts.push(
-      `<b>Подключение 0 ₸</b> при открытии Freedom-счёта — в подарок AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
+      `<b>Подключение и абонплата 0 ₸</b> при открытии Freedom-счёта — в подарок AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
     );
   }
   const punch = punchParts.length
@@ -1124,7 +1128,7 @@ function render() {
     sections += `
       <h2 class="sec">${secNum++}. Бесплатно при Freedom-счёте — база гостей и аналитика</h2>
       <div class="freedom-intro">
-        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b> и в подарок <b>AI-рассылки и стандартная аналитика</b>. Каждая оплата картой Freedom = карточка гостя в базе. С первой недели появляется ресурс, с которым можно работать: сегменты, рассылки, возвраты.
+        Партнёр открывает Freedom-счёт → <b>подключение и абонплата 0 ₸</b>, в подарок <b>AI-рассылки и стандартная аналитика</b>. Каждая оплата картой Freedom = карточка гостя в базе. С первой недели появляется ресурс, с которым можно работать: сегменты, рассылки, возвраты.
       </div>
       <div class="pillars">
         <div class="pillar"><b>База с 1 дня</b>Каждая оплата → карточка гостя, конверсия 100 %</div>
@@ -1144,10 +1148,20 @@ function render() {
   }
 
   // Cost section
-  const productRows = Object.entries(state.products)
-    .filter(([_, p]) => p.enabled)
-    .map(([k, p]) => `<tr><td>${escapeHtml(PRODUCT_LABELS[k])}</td><td class="num">${fmtMoney(p.price)} / мес</td></tr>`)
+  const enabledProducts = Object.entries(state.products).filter(([_, p]) => p.enabled);
+  const productRows = enabledProducts
+    .map(([k, p]) => {
+      const eff = effectivePrice(p);
+      const cell = isFreedom
+        ? `<b style="color:var(--sr-green-dark)">0 ₸ / мес</b><span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">обычно ${fmtMoney(p.price)}</span>`
+        : `${fmtMoney(eff)} / мес`;
+      return `<tr><td>${escapeHtml(PRODUCT_LABELS[k])}</td><td class="num">${cell}</td></tr>`;
+    })
     .join("");
+
+  const abonplataCell = isFreedom
+    ? `<b style="color:var(--sr-green-dark)">0 ₸ / мес — при Freedom-счёте</b>`
+    : `${fmtMoney(c.monthlyAbon)} / мес`;
 
   const setupRow = isFreedom
     ? `<tr><td>Подключение на точку (при открытии Freedom-счёта)</td><td class="num"><b style="color:var(--sr-green-dark)">0 ₸ — бесплатно</b></td></tr>`
@@ -1162,7 +1176,7 @@ function render() {
     <table class="tbl">
       <thead><tr><th>Позиция</th><th class="num">Стоимость</th></tr></thead>
       <tbody>
-        <tr class="row-hi"><td>Абонплата пакета (${Object.values(state.products).filter(p => p.enabled).length} продукт(а))</td><td class="num">${fmtMoney(c.monthlyAbon)} / мес</td></tr>
+        <tr class="row-hi"><td>Абонплата пакета (${enabledProducts.length} продукт(а))</td><td class="num">${abonplataCell}</td></tr>
         ${productRows}
         ${setupRow}
         <tr><td>Обучение, интеграция с кассой, поддержка 7/7</td><td class="num">Включено</td></tr>
