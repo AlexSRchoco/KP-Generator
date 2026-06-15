@@ -351,6 +351,72 @@
 
   .preview-shell .note { font-size: 8.5pt; color: var(--sr-muted); margin: 4px 0 12px; line-height: 1.4; }
 
+  .preview-shell .freedom-intro {
+    background: var(--sr-green-soft);
+    border: 1px solid var(--sr-green-line);
+    border-left: 4px solid var(--sr-green);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 9.5pt;
+    line-height: 1.45;
+    margin: 0 0 10px;
+    color: var(--sr-ink-soft);
+  }
+  .preview-shell .freedom-intro b { color: var(--sr-green-dark); }
+
+  .preview-shell .pillars {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+    margin: 0 0 10px;
+  }
+  .preview-shell .pillar {
+    background: white;
+    border: 1px solid var(--sr-green-line);
+    border-radius: 6px;
+    padding: 8px 9px;
+    font-size: 8pt;
+    color: var(--sr-ink-soft);
+    line-height: 1.3;
+  }
+  .preview-shell .pillar b {
+    display: block;
+    color: var(--sr-green-dark);
+    font-size: 9pt;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .preview-shell .case-study {
+    background: #0f1b1f;
+    color: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 0 0 14px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: center;
+  }
+  .preview-shell .case-study .cs-label {
+    font-size: 7.5pt;
+    color: #a4d4b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .preview-shell .case-study .cs-text { font-size: 9pt; opacity: 0.9; line-height: 1.4; }
+  .preview-shell .case-study .cs-text b { color: white; font-weight: 700; }
+  .preview-shell .case-study .cs-amount {
+    background: var(--sr-green);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+
   /* ========== Print ========== */
   @page { size: A4 portrait; margin: 0; }
   @media print {
@@ -504,10 +570,24 @@
         <input type="number" data-price="noCashier" min="0" step="5000" />
       </label>
 
+      <h2>Freedom-счёт</h2>
+      <div class="hint">
+        Если партнёр открывает Freedom-счёт — подключение бесплатно, и он получает Guest 360, AI-рассылки и аналитику в подарок.
+      </div>
+      <label class="product" data-key="freedomAccount">
+        <input type="checkbox" id="f-freedom" />
+        <span>
+          <div class="p-name">Партнёр открывает Freedom-счёт</div>
+          <div class="p-desc">Подключение 0 ₸ + Guest 360, AI-рассылки и аналитика</div>
+        </span>
+        <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">−50 000 ₸</span>
+      </label>
+
       <h2>Прочее</h2>
       <div class="field">
         <label>Подключение на точку, разово (₸)</label>
         <input type="number" id="f-setup" min="0" step="5000" />
+        <div class="hint" style="margin-top:6px">Если Freedom-счёт включён выше — это поле игнорируется, в КП будет 0 ₸.</div>
       </div>
       <div class="field-row two">
         <div class="field">
@@ -581,6 +661,7 @@ const DEFAULTS = {
   },
   setup: 50000,
   acquiring: { kaspi: 0, otherCards: 2 },
+  freedomAccount: { enabled: true },
   manager: {
     name: "",
     initials: "",
@@ -737,6 +818,7 @@ function bindForm() {
   // products
   document.querySelectorAll(".product").forEach(row => {
     const key = row.dataset.key;
+    if (key === "freedomAccount") return; // handled separately below
     const cb = row.querySelector("input[type=checkbox]");
     const priceInput = row.querySelector("input[type=number]");
     cb.checked = state.products[key].enabled;
@@ -755,6 +837,20 @@ function bindForm() {
       render();
     });
   });
+
+  // freedom account toggle
+  const freedomRow = document.querySelector('.product[data-key="freedomAccount"]');
+  const freedomCb = document.getElementById("f-freedom");
+  if (freedomCb && freedomRow) {
+    freedomCb.checked = state.freedomAccount.enabled;
+    freedomRow.classList.toggle("on", freedomCb.checked);
+    freedomCb.addEventListener("change", () => {
+      state.freedomAccount.enabled = freedomCb.checked;
+      freedomRow.classList.toggle("on", freedomCb.checked);
+      saveState();
+      render();
+    });
+  }
 
   // toolbar
   document.getElementById("btn-print").addEventListener("click", () => window.print());
@@ -786,10 +882,17 @@ function initFormValues() {
   // re-populate all inputs from state
   document.querySelectorAll(".product").forEach(row => {
     const key = row.dataset.key;
+    if (key === "freedomAccount") return;
     row.querySelector("input[type=checkbox]").checked = state.products[key].enabled;
     row.querySelector("input[type=number]").value = state.products[key].price;
     row.classList.toggle("on", state.products[key].enabled);
   });
+  const freedomRow = document.querySelector('.product[data-key="freedomAccount"]');
+  const freedomCb = document.getElementById("f-freedom");
+  if (freedomCb && freedomRow) {
+    freedomCb.checked = state.freedomAccount.enabled;
+    freedomRow.classList.toggle("on", freedomCb.checked);
+  }
   const map = {
     "f-kpNumber":   state.meta.kpNumber,
     "f-date":       state.meta.date,
@@ -922,6 +1025,11 @@ function render() {
       `<b>Без Кассира</b> убирает очереди — официант принимает оплату прямо у стола со смартфона.`
     );
   }
+  if (state.freedomAccount?.enabled) {
+    punchParts.push(
+      `<b>Подключение 0 ₸</b> при открытии Freedom-счёта — в подарок Guest 360, AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
+    );
+  }
   const punch = punchParts.length
     ? punchParts.join(" ")
     : "Выбери продукты в форме слева — здесь появится punch-line.";
@@ -1010,11 +1118,44 @@ function render() {
     `;
   }
 
+  // Freedom-account bonus section
+  const isFreedom = state.freedomAccount?.enabled;
+  if (isFreedom) {
+    sections += `
+      <h2 class="sec">${secNum++}. Бесплатно при Freedom-счёте — база гостей и аналитика</h2>
+      <div class="freedom-intro">
+        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b> и в подарок <b>Guest 360, AI-рассылки и стандартная аналитика</b>. Каждая оплата картой Freedom = карточка гостя в базе. С первой недели появляется ресурс, с которым можно работать: сегменты, рассылки, возвраты.
+      </div>
+      <div class="pillars">
+        <div class="pillar"><b>База с 1 дня</b>Каждая оплата → карточка гостя, конверсия 100 %</div>
+        <div class="pillar"><b>Сегменты</b>VIP, спящие, утренние, по чеку — авто, без маркетолога</div>
+        <div class="pillar"><b>AI-рассылки</b>Push и SMS по сегментам, ROI на каждую кампанию</div>
+        <div class="pillar"><b>Аналитика</b>Оплаты, чек, ABC-меню, динамика — в одном кабинете</div>
+        <div class="pillar"><b>Отзывы</b>Сбор через QR до публикации в 2GIS, ответы в окне</div>
+      </div>
+      <div class="case-study">
+        <div>
+          <div class="cs-label">Кейс партнёра · профиль близок к вашему</div>
+          <div class="cs-text">Одна push-рассылка по сегменту <b>«спящие 30–60 дней»</b>: 600 вернувшихся гостей × средний чек = <b>возврат за неделю</b>. Стоимость рассылки — 0 ₸.</div>
+        </div>
+        <div class="cs-amount">+1,2 млн ₸</div>
+      </div>
+    `;
+  }
+
   // Cost section
   const productRows = Object.entries(state.products)
     .filter(([_, p]) => p.enabled)
     .map(([k, p]) => `<tr><td>${escapeHtml(PRODUCT_LABELS[k])}</td><td class="num">${fmtMoney(p.price)} / мес</td></tr>`)
     .join("");
+
+  const setupRow = isFreedom
+    ? `<tr><td>Подключение на точку (при открытии Freedom-счёта)</td><td class="num"><b style="color:var(--sr-green-dark)">0 ₸ — бесплатно</b></td></tr>`
+    : `<tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>`;
+
+  const guestRow = isFreedom
+    ? `<tr><td>Guest 360, AI-рассылки, стандартная аналитика</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
+    : "";
 
   sections += `
     <h2 class="sec">${secNum++}. Стоимость</h2>
@@ -1023,8 +1164,9 @@ function render() {
       <tbody>
         <tr class="row-hi"><td>Абонплата пакета (${Object.values(state.products).filter(p => p.enabled).length} продукт(а))</td><td class="num">${fmtMoney(c.monthlyAbon)} / мес</td></tr>
         ${productRows}
-        <tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>
+        ${setupRow}
         <tr><td>Обучение, интеграция с кассой, поддержка 7/7</td><td class="num">Включено</td></tr>
+        ${guestRow}
         <tr><td>Эквайринг Kaspi (QR / Kaspi Pay)</td><td class="num">${state.acquiring.kaspi} %</td></tr>
         <tr><td>Эквайринг по другим картам (Visa / Mastercard)</td><td class="num">${state.acquiring.otherCards} %</td></tr>
       </tbody>
@@ -1173,6 +1315,16 @@ function buildStandaloneHtml(previewHtml) {
     .contact .phone{font-size:10.5pt;color:var(--sr-green-dark);font-weight:600;font-variant-numeric:tabular-nums}
     footer.kp-foot{margin-top:20px;padding-top:10px;border-top:1px solid var(--sr-border);display:flex;justify-content:space-between;font-size:7.5pt;color:var(--sr-muted)}
     .note{font-size:8.5pt;color:var(--sr-muted);margin:4px 0 12px;line-height:1.4}
+    .freedom-intro{background:var(--sr-green-soft);border:1px solid var(--sr-green-line);border-left:4px solid var(--sr-green);border-radius:8px;padding:10px 14px;font-size:9.5pt;line-height:1.45;margin:0 0 10px;color:var(--sr-ink-soft)}
+    .freedom-intro b{color:var(--sr-green-dark)}
+    .pillars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 0 10px}
+    .pillar{background:#fff;border:1px solid var(--sr-green-line);border-radius:6px;padding:8px 9px;font-size:8pt;color:var(--sr-ink-soft);line-height:1.3}
+    .pillar b{display:block;color:var(--sr-green-dark);font-size:9pt;font-weight:700;margin-bottom:3px}
+    .case-study{background:#0f1b1f;color:#fff;border-radius:8px;padding:12px 16px;margin:0 0 14px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+    .case-study .cs-label{font-size:7.5pt;color:#a4d4b8;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:3px}
+    .case-study .cs-text{font-size:9pt;opacity:.9;line-height:1.4}
+    .case-study .cs-text b{color:#fff;font-weight:700}
+    .case-study .cs-amount{background:var(--sr-green);color:#fff;padding:6px 14px;border-radius:6px;font-size:14pt;font-weight:800;letter-spacing:-.3px;white-space:nowrap}
     @page{size:A4 portrait;margin:0}
     @media print{body{background:#fff}.page{padding:14mm 16mm;max-width:none}}
   `;
