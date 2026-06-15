@@ -572,13 +572,13 @@
 
       <h2>Freedom-счёт</h2>
       <div class="hint">
-        Если партнёр открывает Freedom-счёт — подключение бесплатно, и он получает Guest 360, AI-рассылки и аналитику в подарок.
+        Если партнёр открывает Freedom-счёт — подключение бесплатно, и он получает AI-рассылки и аналитику в подарок.
       </div>
       <label class="product" data-key="freedomAccount">
         <input type="checkbox" id="f-freedom" />
         <span>
           <div class="p-name">Партнёр открывает Freedom-счёт</div>
-          <div class="p-desc">Подключение 0 ₸ + Guest 360, AI-рассылки и аналитика</div>
+          <div class="p-desc">Подключение 0 ₸ + AI-рассылки и аналитика</div>
         </span>
         <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">−50 000 ₸</span>
       </label>
@@ -1027,7 +1027,7 @@ function render() {
   }
   if (state.freedomAccount?.enabled) {
     punchParts.push(
-      `<b>Подключение 0 ₸</b> при открытии Freedom-счёта — в подарок Guest 360, AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
+      `<b>Подключение 0 ₸</b> при открытии Freedom-счёта — в подарок AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
     );
   }
   const punch = punchParts.length
@@ -1124,7 +1124,7 @@ function render() {
     sections += `
       <h2 class="sec">${secNum++}. Бесплатно при Freedom-счёте — база гостей и аналитика</h2>
       <div class="freedom-intro">
-        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b> и в подарок <b>Guest 360, AI-рассылки и стандартная аналитика</b>. Каждая оплата картой Freedom = карточка гостя в базе. С первой недели появляется ресурс, с которым можно работать: сегменты, рассылки, возвраты.
+        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b> и в подарок <b>AI-рассылки и стандартная аналитика</b>. Каждая оплата картой Freedom = карточка гостя в базе. С первой недели появляется ресурс, с которым можно работать: сегменты, рассылки, возвраты.
       </div>
       <div class="pillars">
         <div class="pillar"><b>База с 1 дня</b>Каждая оплата → карточка гостя, конверсия 100 %</div>
@@ -1154,7 +1154,7 @@ function render() {
     : `<tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>`;
 
   const guestRow = isFreedom
-    ? `<tr><td>Guest 360, AI-рассылки, стандартная аналитика</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
+    ? `<tr><td>AI-рассылки и стандартная аналитика</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
     : "";
 
   sections += `
