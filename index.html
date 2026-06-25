@@ -190,6 +190,17 @@
     outline: none;
     border-color: var(--ui-accent);
   }
+  .product .prices {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .product .prices input[data-discount] {
+    font-size: 11px;
+    padding: 3px 6px;
+    background: #fff8f0;
+    border-color: #f3d6b3;
+    color: #b35900;
+  }
+  .product .prices input[data-discount]::placeholder { color: #c08456; }
 
   /* ========== Preview pane ========== */
   .preview-pane {
@@ -531,25 +542,34 @@
           <div class="p-name">SR Delivery</div>
           <div class="p-desc">Свой канал доставки без комиссии агрегаторам</div>
         </span>
-        <input type="number" data-price="delivery" min="0" step="5000" />
+        <div class="prices">
+          <input type="number" data-price="delivery" min="0" step="5000" />
+          <input type="number" data-discount="delivery" min="0" step="1000" placeholder="скидка" />
+        </div>
       </label>
 
       <label class="product" data-key="autoPay">
         <input type="checkbox" data-product="autoPay" />
         <span>
           <div class="p-name">Авто-подтягивание счёта</div>
-          <div class="p-desc">QR-оплата счёта в зале, гость платит со смартфона</div>
+          <div class="p-desc">QR-оплата счёта в зале · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
         </span>
-        <input type="number" data-price="autoPay" min="0" step="5000" />
+        <div class="prices">
+          <input type="number" data-price="autoPay" min="0" step="5000" />
+          <input type="number" data-discount="autoPay" min="0" step="1000" placeholder="скидка" />
+        </div>
       </label>
 
       <label class="product" data-key="noWaiter">
         <input type="checkbox" data-product="noWaiter" />
         <span>
           <div class="p-name">Без Официанта</div>
-          <div class="p-desc">QR-меню в зале, гость заказывает с телефона</div>
+          <div class="p-desc">QR-меню в зале · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
         </span>
-        <input type="number" data-price="noWaiter" min="0" step="5000" />
+        <div class="prices">
+          <input type="number" data-price="noWaiter" min="0" step="5000" />
+          <input type="number" data-discount="noWaiter" min="0" step="1000" placeholder="скидка" />
+        </div>
       </label>
 
       <label class="product" data-key="loyalty">
@@ -558,46 +578,46 @@
           <div class="p-name">Лояльность</div>
           <div class="p-desc">Своя база клиентов, бонусы, рассылки</div>
         </span>
-        <input type="number" data-price="loyalty" min="0" step="5000" />
+        <div class="prices">
+          <input type="number" data-price="loyalty" min="0" step="5000" />
+          <input type="number" data-discount="loyalty" min="0" step="1000" placeholder="скидка" />
+        </div>
       </label>
 
       <label class="product" data-key="noCashier">
         <input type="checkbox" data-product="noCashier" />
         <span>
           <div class="p-name">Без Кассира</div>
-          <div class="p-desc">Касса на смартфоне у официанта, минус очереди</div>
+          <div class="p-desc">Касса на смартфоне · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
         </span>
-        <input type="number" data-price="noCashier" min="0" step="5000" />
+        <div class="prices">
+          <input type="number" data-price="noCashier" min="0" step="5000" />
+          <input type="number" data-discount="noCashier" min="0" step="1000" placeholder="скидка" />
+        </div>
       </label>
 
       <h2>Freedom-счёт</h2>
       <div class="hint">
-        Если партнёр открывает Freedom-счёт — подключение и абонплата бесплатно, и он получает AI-рассылки и аналитику в подарок.
+        Если партнёр открывает Freedom-счёт: подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. SR Delivery и Лояльность — на платной основе (можно поставить скидку рядом с ценой).
       </div>
       <label class="product" data-key="freedomAccount">
         <input type="checkbox" id="f-freedom" />
         <span>
           <div class="p-name">Партнёр открывает Freedom-счёт</div>
-          <div class="p-desc">Подключение и абонплата 0 ₸ + AI-рассылки и аналитика</div>
+          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + AI-рассылки и аналитика</div>
         </span>
-        <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">обнуляет всё</span>
+        <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">бонусы</span>
       </label>
 
       <h2>Прочее</h2>
       <div class="field">
         <label>Подключение на точку, разово (₸)</label>
         <input type="number" id="f-setup" min="0" step="5000" />
-        <div class="hint" style="margin-top:6px">Если Freedom-счёт включён выше — подключение и абонплата в КП обнуляются.</div>
+        <div class="hint" style="margin-top:6px">При Freedom-счёте — в КП будет 0 ₸.</div>
       </div>
-      <div class="field-row two">
-        <div class="field">
-          <label>Эквайринг Kaspi (%)</label>
-          <input type="number" id="f-kaspi" min="0" step="0.1" />
-        </div>
-        <div class="field">
-          <label>Эквайринг прочие карты (%)</label>
-          <input type="number" id="f-otherCards" min="0" step="0.1" />
-        </div>
+      <div class="field">
+        <label>Эквайринг (все карты), %</label>
+        <input type="number" id="f-acquiring" min="0" step="0.1" />
       </div>
 
       <h2>Менеджер</h2>
@@ -653,14 +673,14 @@ const DEFAULTS = {
     commission: 30
   },
   products: {
-    delivery:  { enabled: true,  price: 60000 },
-    autoPay:   { enabled: false, price: 30000 },
-    noWaiter:  { enabled: false, price: 60000 },
-    loyalty:   { enabled: false, price: 60000 },
-    noCashier: { enabled: false, price: 60000 }
+    delivery:  { enabled: true,  price: 60000, discount: 0 },
+    autoPay:   { enabled: false, price: 30000, discount: 0 },
+    noWaiter:  { enabled: false, price: 60000, discount: 0 },
+    loyalty:   { enabled: false, price: 60000, discount: 0 },
+    noCashier: { enabled: false, price: 60000, discount: 0 }
   },
   setup: 50000,
-  acquiring: { kaspi: 0, otherCards: 2 },
+  acquiring: { rate: 2 },
   freedomAccount: { enabled: true },
   manager: {
     name: "",
@@ -677,6 +697,9 @@ const PRODUCT_LABELS = {
   loyalty: "Лояльность",
   noCashier: "Без Кассира"
 };
+
+// Бесплатные продукты при открытии Freedom-счёта
+const FREEDOM_FREE_PRODUCTS = ["autoPay", "noWaiter", "noCashier"];
 
 const PRODUCT_BULLETS = {
   autoPay: {
@@ -793,8 +816,7 @@ function bindForm() {
     "f-avgCheck":   ["business", "avgCheck"],
     "f-commission": ["business", "commission"],
     "f-setup":      ["setup"],
-    "f-kaspi":      ["acquiring", "kaspi"],
-    "f-otherCards": ["acquiring", "otherCards"],
+    "f-acquiring":  ["acquiring", "rate"],
     "f-manager":    ["manager", "name"],
     "f-initials":   ["manager", "initials"],
     "f-phone":      ["manager", "phone"]
@@ -820,9 +842,11 @@ function bindForm() {
     const key = row.dataset.key;
     if (key === "freedomAccount") return; // handled separately below
     const cb = row.querySelector("input[type=checkbox]");
-    const priceInput = row.querySelector("input[type=number]");
+    const priceInput = row.querySelector(`input[data-price="${key}"]`);
+    const discInput  = row.querySelector(`input[data-discount="${key}"]`);
     cb.checked = state.products[key].enabled;
     priceInput.value = state.products[key].price;
+    if (discInput) discInput.value = state.products[key].discount || "";
     row.classList.toggle("on", cb.checked);
 
     cb.addEventListener("change", () => {
@@ -836,6 +860,13 @@ function bindForm() {
       saveState();
       render();
     });
+    if (discInput) {
+      discInput.addEventListener("input", () => {
+        state.products[key].discount = Number(discInput.value || 0);
+        saveState();
+        render();
+      });
+    }
   });
 
   // freedom account toggle
@@ -884,7 +915,9 @@ function initFormValues() {
     const key = row.dataset.key;
     if (key === "freedomAccount") return;
     row.querySelector("input[type=checkbox]").checked = state.products[key].enabled;
-    row.querySelector("input[type=number]").value = state.products[key].price;
+    row.querySelector(`input[data-price="${key}"]`).value = state.products[key].price;
+    const discInput = row.querySelector(`input[data-discount="${key}"]`);
+    if (discInput) discInput.value = state.products[key].discount || "";
     row.classList.toggle("on", state.products[key].enabled);
   });
   const freedomRow = document.querySelector('.product[data-key="freedomAccount"]');
@@ -905,8 +938,7 @@ function initFormValues() {
     "f-avgCheck":   state.business.avgCheck,
     "f-commission": state.business.commission,
     "f-setup":      state.setup,
-    "f-kaspi":      state.acquiring.kaspi,
-    "f-otherCards": state.acquiring.otherCards,
+    "f-acquiring":  state.acquiring?.rate ?? 2,
     "f-manager":    state.manager.name,
     "f-initials":   state.manager.initials,
     "f-phone":      state.manager.phone
@@ -918,8 +950,14 @@ function initFormValues() {
 }
 
 /* ---------- Calculations ---------- */
-function effectivePrice(p) {
-  return state.freedomAccount?.enabled ? 0 : (p?.price ?? 0);
+function isFreedomFree(key) {
+  return state.freedomAccount?.enabled && FREEDOM_FREE_PRODUCTS.includes(key);
+}
+function effectivePrice(p, key) {
+  if (isFreedomFree(key)) return 0;
+  const base = p?.price ?? 0;
+  const disc = p?.discount ?? 0;
+  return Math.max(0, base - disc);
 }
 
 function compute() {
@@ -928,10 +966,10 @@ function compute() {
   const lossPerOrder = s.business.avgCheck * (s.business.commission / 100);
   const aggregatorLoss = orders * lossPerOrder;
 
-  const deliveryAbon = s.products.delivery.enabled ? effectivePrice(s.products.delivery) : 0;
+  const deliveryAbon = s.products.delivery.enabled ? effectivePrice(s.products.delivery, "delivery") : 0;
   const monthlyAbon = Object.entries(s.products)
     .filter(([_, p]) => p.enabled)
-    .reduce((sum, [_, p]) => sum + effectivePrice(p), 0);
+    .reduce((sum, [k, p]) => sum + effectivePrice(p, k), 0);
 
   const scenarioPcts = [0.30, 0.50, 0.70, 1.00];
   const scenarios = scenarioPcts.map(p => {
@@ -1031,7 +1069,7 @@ function render() {
   }
   if (state.freedomAccount?.enabled) {
     punchParts.push(
-      `<b>Подключение и абонплата 0 ₸</b> при открытии Freedom-счёта — в подарок AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
+      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. В подарок AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
     );
   }
   const punch = punchParts.length
@@ -1128,7 +1166,7 @@ function render() {
     sections += `
       <h2 class="sec">${secNum++}. Бесплатно при Freedom-счёте — база гостей и аналитика</h2>
       <div class="freedom-intro">
-        Партнёр открывает Freedom-счёт → <b>подключение и абонплата 0 ₸</b>, в подарок <b>AI-рассылки и стандартная аналитика</b>. Каждая оплата картой Freedom = карточка гостя в базе. С первой недели появляется ресурс, с которым можно работать: сегменты, рассылки, возвраты.
+        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b>. Три продукта включаются бесплатно: <b>Авто-подтягивание, Без Официанта, Без Кассира</b>. В подарок <b>AI-рассылки и стандартная аналитика</b> — каждая оплата картой Freedom попадает в базу гостя, с первой недели появляется ресурс для сегментов, рассылок и возвратов.
       </div>
       <div class="pillars">
         <div class="pillar"><b>База с 1 дня</b>Каждая оплата → карточка гостя, конверсия 100 %</div>
@@ -1151,17 +1189,21 @@ function render() {
   const enabledProducts = Object.entries(state.products).filter(([_, p]) => p.enabled);
   const productRows = enabledProducts
     .map(([k, p]) => {
-      const eff = effectivePrice(p);
-      const cell = isFreedom
-        ? `<b style="color:var(--sr-green-dark)">0 ₸ / мес</b><span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">обычно ${fmtMoney(p.price)}</span>`
-        : `${fmtMoney(eff)} / мес`;
+      const freeAtFreedom = isFreedomFree(k);
+      const disc = p.discount || 0;
+      const base = p.price || 0;
+      const eff = effectivePrice(p, k);
+      let cell;
+      if (freeAtFreedom) {
+        cell = `<b style="color:var(--sr-green-dark)">0 ₸ / мес — при Freedom-счёте</b>`;
+      } else if (disc > 0) {
+        cell = `<b>${fmtMoney(eff)}</b> / мес<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${fmtMoney(base)} − скидка ${fmtMoney(disc)}</span>`;
+      } else {
+        cell = `${fmtMoney(eff)} / мес`;
+      }
       return `<tr><td>${escapeHtml(PRODUCT_LABELS[k])}</td><td class="num">${cell}</td></tr>`;
     })
     .join("");
-
-  const abonplataCell = isFreedom
-    ? `<b style="color:var(--sr-green-dark)">0 ₸ / мес — при Freedom-счёте</b>`
-    : `${fmtMoney(c.monthlyAbon)} / мес`;
 
   const setupRow = isFreedom
     ? `<tr><td>Подключение на точку (при открытии Freedom-счёта)</td><td class="num"><b style="color:var(--sr-green-dark)">0 ₸ — бесплатно</b></td></tr>`
@@ -1171,18 +1213,19 @@ function render() {
     ? `<tr><td>AI-рассылки и стандартная аналитика</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
     : "";
 
+  const acquiringRate = state.acquiring?.rate ?? 2;
+
   sections += `
     <h2 class="sec">${secNum++}. Стоимость</h2>
     <table class="tbl">
       <thead><tr><th>Позиция</th><th class="num">Стоимость</th></tr></thead>
       <tbody>
-        <tr class="row-hi"><td>Абонплата пакета (${enabledProducts.length} продукт(а))</td><td class="num">${abonplataCell}</td></tr>
+        <tr class="row-hi"><td>Итого абонплата пакета (${enabledProducts.length} продукт(а))</td><td class="num">${fmtMoney(c.monthlyAbon)} / мес</td></tr>
         ${productRows}
         ${setupRow}
         <tr><td>Обучение, интеграция с кассой, поддержка 7/7</td><td class="num">Включено</td></tr>
         ${guestRow}
-        <tr><td>Эквайринг Kaspi (QR / Kaspi Pay)</td><td class="num">${state.acquiring.kaspi} %</td></tr>
-        <tr><td>Эквайринг по другим картам (Visa / Mastercard)</td><td class="num">${state.acquiring.otherCards} %</td></tr>
+        <tr><td>Эквайринг (все карты: Kaspi, Visa, Mastercard)</td><td class="num">${acquiringRate} %</td></tr>
       </tbody>
     </table>
   `;
