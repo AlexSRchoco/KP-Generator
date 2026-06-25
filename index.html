@@ -428,6 +428,22 @@
     white-space: nowrap;
   }
 
+  .preview-shell .cashback-magnet {
+    background: var(--sr-green);
+    color: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 0 0 10px;
+    display: flex; align-items: center; gap: 14px;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+  .preview-shell .cashback-magnet .cb-num {
+    font-size: 22pt; font-weight: 800; letter-spacing: -1px;
+    line-height: 1; flex: 0 0 auto;
+  }
+  .preview-shell .cashback-magnet b { color: white; font-weight: 700; }
+
   /* ========== Print ========== */
   @page { size: A4 portrait; margin: 0; }
   @media print {
@@ -575,8 +591,8 @@
       <label class="product" data-key="loyalty">
         <input type="checkbox" data-product="loyalty" />
         <span>
-          <div class="p-name">Лояльность</div>
-          <div class="p-desc">Своя база клиентов, бонусы, рассылки</div>
+          <div class="p-name">Программа Лояльности</div>
+          <div class="p-desc">Возврат неактивной базы — разовых и спящих гостей</div>
         </span>
         <div class="prices">
           <input type="number" data-price="loyalty" min="0" step="5000" />
@@ -588,7 +604,7 @@
         <input type="checkbox" data-product="noCashier" />
         <span>
           <div class="p-name">Без Кассира</div>
-          <div class="p-desc">Касса на смартфоне · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
+          <div class="p-desc">Заказ заранее по QR / 2ГИС / Instagram · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
         </span>
         <div class="prices">
           <input type="number" data-price="noCashier" min="0" step="5000" />
@@ -604,7 +620,7 @@
         <input type="checkbox" id="f-freedom" />
         <span>
           <div class="p-name">Партнёр открывает Freedom-счёт</div>
-          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + AI-рассылки и аналитика</div>
+          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + до 16% кешбэка гостям + AI-рассылки</div>
         </span>
         <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">бонусы</span>
       </label>
@@ -694,7 +710,7 @@ const PRODUCT_LABELS = {
   delivery: "SR Delivery",
   autoPay: "Авто-подтягивание",
   noWaiter: "Без Официанта",
-  loyalty: "Лояльность",
+  loyalty: "Программа Лояльности",
   noCashier: "Без Кассира"
 };
 
@@ -722,23 +738,23 @@ const PRODUCT_BULLETS = {
     ]
   },
   loyalty: {
-    title: "Эффект «Лояльности»",
-    intro: "Своя программа лояльности: гости копят бонусы и возвращаются в твоё заведение, а не уходят к агрегатору. База клиентов остаётся у тебя.",
+    title: "Эффект «Программы Лояльности»",
+    intro: "Возвращает неактивную базу: разовых гостей и тех, кто перестал ходить. Триггерные рассылки и бонусы под сегменты — без посредников.",
     bullets: [
-      "<b>+25–40 %</b> к частоте возвращения постоянных гостей",
-      "<b>База клиентов у тебя</b> — телефоны, email, поведение покупок, а не у Glovo",
-      "<b>Push и SMS-рассылки</b> с акциями напрямую клиенту, без посредников",
-      "<b>Уровни и купоны</b> — настраиваешь правила под свою экономику"
+      "<b>Возврат разовых гостей</b> — те, кто пришёл один раз и забыл, получают триггерное напоминание",
+      "<b>Реанимация спящих</b> — гости, переставшие ходить 30+ дней, возвращаются по push-рассылке",
+      "<b>База у тебя</b> — телефоны, поведение покупок, средний чек, любимые блюда — не у Glovo",
+      "<b>Уровни и купоны</b> — настраиваешь правила бонусов и кешбэка под свою экономику"
     ]
   },
   noCashier: {
     title: "Эффект «Без Кассира»",
-    intro: "Касса на смартфоне официанта: открывает счёт, принимает заказ, отбивает чек прямо у стола. Очередей у кассы нет, отдельный кассир не нужен.",
+    intro: "Гость заказывает заранее — через QR на столе или ссылку из 2ГИС / Instagram. Заказ автоматически попадает в кассу со звуковым уведомлением, кассир не пропускает его.",
     bullets: [
-      "<b>−30–50 %</b> очередей в часы пик — расчёт у стола, без подхода к кассе",
-      "<b>Заказ → кухня за 10 секунд</b> — без бега к станции и переписи на бумаге",
-      "<b>−1 ставка</b> кассира при правильной организации смены",
-      "<b>Электронный чек</b> гостю на email или SMS — без бумаги и термоленты"
+      "<b>Без очереди</b> — гость делает заказ со смартфона здесь и сейчас, не подходя к кассе",
+      "<b>Заказы из 2ГИС и Instagram</b> — переход по ссылке прямо из соцсети или карточки заведения",
+      "<b>Звуковое уведомление</b> в кассе на каждый новый заказ — ни один не теряется",
+      "<b>Кухня видит сразу</b> — без бега к станции и переписи на бумаге"
     ]
   }
 };
@@ -1059,17 +1075,17 @@ function render() {
   }
   if (enabled.loyalty) {
     punchParts.push(
-      `<b>Лояльность</b> возвращает базу клиентов от агрегаторов под твой бренд — рассылки и бонусы.`
+      `<b>Программа Лояльности</b> возвращает неактивную базу — разовых гостей и тех, кто перестал ходить — через рассылки и бонусы.`
     );
   }
   if (enabled.noCashier) {
     punchParts.push(
-      `<b>Без Кассира</b> убирает очереди — официант принимает оплату прямо у стола со смартфона.`
+      `<b>Без Кассира</b> — гость делает заказ заранее по QR или ссылке из 2ГИС / Instagram, не стоит в очереди. В кассе звуковое уведомление о каждом заказе — кассир не пропустит.`
     );
   }
   if (state.freedomAccount?.enabled) {
     punchParts.push(
-      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. В подарок AI-рассылки и аналитика, чтобы зарабатывать на своей базе.`
+      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Гости получают <b>до 16% кешбэка</b> при оплате картой Freedom + в подарок AI-рассылки и аналитика.`
     );
   }
   const punch = punchParts.length
@@ -1167,6 +1183,10 @@ function render() {
       <h2 class="sec">${secNum++}. Бесплатно при Freedom-счёте — база гостей и аналитика</h2>
       <div class="freedom-intro">
         Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b>. Три продукта включаются бесплатно: <b>Авто-подтягивание, Без Официанта, Без Кассира</b>. В подарок <b>AI-рассылки и стандартная аналитика</b> — каждая оплата картой Freedom попадает в базу гостя, с первой недели появляется ресурс для сегментов, рассылок и возвратов.
+      </div>
+      <div class="cashback-magnet">
+        <div class="cb-num">+16%</div>
+        <div><b>Кешбэк гостям при оплате картой Freedom</b><br/>Естественный магнит лояльности и причина выбрать именно ваше заведение.</div>
       </div>
       <div class="pillars">
         <div class="pillar"><b>База с 1 дня</b>Каждая оплата → карточка гостя, конверсия 100 %</div>
@@ -1382,6 +1402,9 @@ function buildStandaloneHtml(previewHtml) {
     .case-study .cs-text{font-size:9pt;opacity:.9;line-height:1.4}
     .case-study .cs-text b{color:#fff;font-weight:700}
     .case-study .cs-amount{background:var(--sr-green);color:#fff;padding:6px 14px;border-radius:6px;font-size:14pt;font-weight:800;letter-spacing:-.3px;white-space:nowrap}
+    .cashback-magnet{background:var(--sr-green);color:#fff;border-radius:8px;padding:10px 14px;margin:0 0 10px;display:flex;align-items:center;gap:14px;font-size:10pt;line-height:1.4}
+    .cashback-magnet .cb-num{font-size:22pt;font-weight:800;letter-spacing:-1px;line-height:1;flex:0 0 auto}
+    .cashback-magnet b{color:#fff;font-weight:700}
     @page{size:A4 portrait;margin:0}
     @media print{body{background:#fff}.page{padding:14mm 16mm;max-width:none}}
   `;
