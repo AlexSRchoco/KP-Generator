@@ -1207,15 +1207,25 @@ function render() {
 
   // Cost section
   const enabledProducts = Object.entries(state.products).filter(([_, p]) => p.enabled);
+
+  // Suma "без Freedom" — для отображения исходной стоимости
+  const fullAbonNoFreedom = enabledProducts.reduce((sum, [_, p]) => {
+    const base = p.price || 0;
+    const disc = p.discount || 0;
+    return sum + Math.max(0, base - disc);
+  }, 0);
+
   const productRows = enabledProducts
     .map(([k, p]) => {
       const freeAtFreedom = isFreedomFree(k);
       const disc = p.discount || 0;
       const base = p.price || 0;
+      const beforeFreedom = Math.max(0, base - disc);
       const eff = effectivePrice(p, k);
       let cell;
       if (freeAtFreedom) {
-        cell = `<b style="color:var(--sr-green-dark)">0 ₸ / мес — при Freedom-счёте</b>`;
+        // зачёркнутая исходная цена + стрелка → 0
+        cell = `<s style="color:var(--sr-muted);font-weight:400">${fmtMoney(beforeFreedom)}</s> → <b style="color:var(--sr-green-dark)">0 ₸</b> / мес<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">при Freedom-счёте</span>`;
       } else if (disc > 0) {
         cell = `<b>${fmtMoney(eff)}</b> / мес<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${fmtMoney(base)} − скидка ${fmtMoney(disc)}</span>`;
       } else {
@@ -1225,8 +1235,14 @@ function render() {
     })
     .join("");
 
+  // Итоговая строка: если Freedom активна и есть бесплатные продукты — показываем "было → стало"
+  const freedomSavingsOnAbon = isFreedom && (fullAbonNoFreedom > c.monthlyAbon);
+  const totalCell = freedomSavingsOnAbon
+    ? `<s style="color:var(--sr-muted);font-weight:600">${fmtMoney(fullAbonNoFreedom)}</s> → <b style="color:var(--sr-green-dark)">${fmtMoney(c.monthlyAbon)}</b> / мес`
+    : `${fmtMoney(c.monthlyAbon)} / мес`;
+
   const setupRow = isFreedom
-    ? `<tr><td>Подключение на точку (при открытии Freedom-счёта)</td><td class="num"><b style="color:var(--sr-green-dark)">0 ₸ — бесплатно</b></td></tr>`
+    ? `<tr><td>Подключение на точку (при открытии Freedom-счёта)</td><td class="num"><s style="color:var(--sr-muted);font-weight:400">${fmtMoney(state.setup)}</s> → <b style="color:var(--sr-green-dark)">0 ₸</b> — бесплатно</td></tr>`
     : `<tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>`;
 
   const guestRow = isFreedom
@@ -1240,7 +1256,7 @@ function render() {
     <table class="tbl">
       <thead><tr><th>Позиция</th><th class="num">Стоимость</th></tr></thead>
       <tbody>
-        <tr class="row-hi"><td>Итого абонплата пакета (${enabledProducts.length} продукт(а))</td><td class="num">${fmtMoney(c.monthlyAbon)} / мес</td></tr>
+        <tr class="row-hi"><td>Итого абонплата пакета (${enabledProducts.length} продукт(а))</td><td class="num">${totalCell}</td></tr>
         ${productRows}
         ${setupRow}
         <tr><td>Обучение, интеграция с кассой, поддержка 7/7</td><td class="num">Включено</td></tr>
