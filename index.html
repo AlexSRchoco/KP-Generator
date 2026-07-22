@@ -376,7 +376,7 @@
   .preview-shell .freedom-intro b { color: var(--sr-green-dark); }
 
   .preview-shell .pillars {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
     margin: 0 0 10px;
   }
   .preview-shell .pillar {
@@ -632,7 +632,7 @@
         <input type="checkbox" id="f-freedom" />
         <span>
           <div class="p-name">Партнёр открывает Freedom-счёт</div>
-          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + до 6% кешбэка гостям + AI-рассылки</div>
+          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + до 6% кешбэка гостям + аналитика по гостям</div>
         </span>
         <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">бонусы</span>
       </label>
@@ -1115,7 +1115,7 @@ function render() {
   }
   if (state.freedomAccount?.enabled) {
     punchParts.push(
-      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Гости получают <b>до 6% кешбэка</b> при оплате картой Freedom + в подарок AI-рассылки и аналитика.`
+      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Гости получают <b>до 6% кешбэка</b> при оплате картой Freedom + в подарок аналитика по всем гостям.`
     );
   }
   const punch = punchParts.length
@@ -1204,7 +1204,7 @@ function render() {
     sections += `
       <h2 class="sec">${secNum++}. Бесплатно при Freedom-счёте — база гостей и аналитика</h2>
       <div class="freedom-intro">
-        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b>. Три продукта включаются бесплатно: <b>Авто-подтягивание, Без Официанта, Без Кассира</b>. В подарок <b>AI-рассылки и стандартная аналитика</b> — каждая оплата картой Freedom попадает в базу гостя, с первой недели появляется ресурс для сегментов, рассылок и возвратов.
+        Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b>. Три продукта включаются бесплатно: <b>Авто-подтягивание, Без Официанта, Без Кассира</b>. В подарок <b>аналитика по всем гостям</b> — каждая оплата картой Freedom попадает в базу гостя, с первой недели появляется ресурс для сегментов и возвратов.
       </div>
       <div class="cashback-magnet">
         <div class="cb-num">+6%</div>
@@ -1213,7 +1213,6 @@ function render() {
       <div class="pillars">
         <div class="pillar"><b>База с 1 дня</b>Каждая оплата → карточка гостя, конверсия 100 %</div>
         <div class="pillar"><b>Сегменты</b>VIP, спящие, утренние, по чеку — авто, без маркетолога</div>
-        <div class="pillar"><b>AI-рассылки</b>Push и SMS по сегментам, ROI на каждую кампанию</div>
         <div class="pillar"><b>Аналитика</b>Оплаты, чек, ABC-меню, динамика — в одном кабинете</div>
         <div class="pillar"><b>Отзывы</b>Сбор через QR до публикации в 2GIS, ответы в окне</div>
       </div>
@@ -1268,7 +1267,7 @@ function render() {
     : `<tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>`;
 
   const guestRow = isFreedom
-    ? `<tr><td>AI-рассылки и стандартная аналитика</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
+    ? `<tr><td>Аналитика по всем гостям (отчёт по предпочтениям, популярным позициям, отзывам через наш сервис, периодичность посещения)</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
     : "";
 
   const acquiringRate = state.acquiring?.rate ?? 2;
