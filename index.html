@@ -612,9 +612,21 @@
         </div>
       </label>
 
+      <label class="product" data-key="kiosks">
+        <input type="checkbox" data-product="kiosks" />
+        <span>
+          <div class="p-name">Киоски самообслуживания</div>
+          <div class="p-desc">Самозаказ и оплата на экране · <b style="color:var(--ui-accent)">−30 000 ₸ при Freedom + от 3 точек</b></div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="kiosks" min="0" step="5000" />
+          <input type="number" data-discount="kiosks" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
       <h2>Freedom-счёт</h2>
       <div class="hint">
-        Если партнёр открывает Freedom-счёт: подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. SR Delivery и Лояльность — на платной основе (можно поставить скидку рядом с ценой).
+        Если партнёр открывает Freedom-счёт: подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. SR Delivery и Лояльность — на платной основе. Киоски самообслуживания: при Freedom + от 3 точек скидка 30 000 ₸/точка — впиши в поле «скидка» рядом с ценой.
       </div>
       <label class="product" data-key="freedomAccount">
         <input type="checkbox" id="f-freedom" />
@@ -693,7 +705,8 @@ const DEFAULTS = {
     autoPay:   { enabled: false, price: 30000, discount: 0 },
     noWaiter:  { enabled: false, price: 60000, discount: 0 },
     loyalty:   { enabled: false, price: 60000, discount: 0 },
-    noCashier: { enabled: false, price: 60000, discount: 0 }
+    noCashier: { enabled: false, price: 60000, discount: 0 },
+    kiosks:    { enabled: false, price: 60000, discount: 0 }
   },
   setup: 50000,
   acquiring: { rate: 2 },
@@ -711,7 +724,8 @@ const PRODUCT_LABELS = {
   autoPay: "Авто-подтягивание",
   noWaiter: "Без Официанта",
   loyalty: "Программа Лояльности",
-  noCashier: "Без Кассира"
+  noCashier: "Без Кассира",
+  kiosks: "Киоски самообслуживания"
 };
 
 // Бесплатные продукты при открытии Freedom-счёта
@@ -755,6 +769,18 @@ const PRODUCT_BULLETS = {
       "<b>Заказы из 2ГИС и Instagram</b> — переход по ссылке прямо из соцсети или карточки заведения",
       "<b>Звуковое уведомление</b> в кассе на каждый новый заказ — ни один не теряется",
       "<b>Кухня видит сразу</b> — без бега к станции и переписи на бумаге"
+    ]
+  },
+  kiosks: {
+    title: "Эффект «Киоски самообслуживания»",
+    intro: "Гость подходит к киоску, сам выбирает блюда на экране и оплачивает картой. Заказ мгновенно уходит на кухню — без очереди к кассе и без ошибок при пересказе.",
+    bullets: [
+      "<b>Самозаказ</b> — гость выбирает и подтверждает заказ сам, без ожидания кассира",
+      "<b>Оплата на киоске</b> — картой или Apple Pay прямо на экране",
+      "<b>Интеграция с кухней</b> — заказ уходит на производство мгновенно, без пересказа",
+      "<b>Изменение меню</b> — актуальные позиции и цены обновляются на всех киосках из одной панели",
+      "<b>Служба поддержки</b> — оперативное решение вопросов при сбоях",
+      "<b>Голосовой заказ</b> — в тестировании"
     ]
   }
 };
@@ -1081,6 +1107,11 @@ function render() {
   if (enabled.noCashier) {
     punchParts.push(
       `<b>Без Кассира</b> — гость делает заказ заранее по QR или ссылке из 2ГИС / Instagram, не стоит в очереди. В кассе звуковое уведомление о каждом заказе — кассир не пропустит.`
+    );
+  }
+  if (enabled.kiosks) {
+    punchParts.push(
+      `<b>Киоски самообслуживания</b> — гость сам оформляет заказ и платит на экране, кассир не нужен на приёме. Заказ мгновенно уходит на кухню.`
     );
   }
   if (state.freedomAccount?.enabled) {
