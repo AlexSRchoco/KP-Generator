@@ -632,7 +632,7 @@
         <input type="checkbox" id="f-freedom" />
         <span>
           <div class="p-name">Партнёр открывает Freedom-счёт</div>
-          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + до 16% кешбэка гостям + AI-рассылки</div>
+          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + до 6% кешбэка гостям + AI-рассылки</div>
         </span>
         <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">бонусы</span>
       </label>
@@ -1116,7 +1116,7 @@ function render() {
   }
   if (state.freedomAccount?.enabled) {
     punchParts.push(
-      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Гости получают <b>до 16% кешбэка</b> при оплате картой Freedom + в подарок AI-рассылки и аналитика.`
+      `<b>При открытии Freedom-счёта</b> — подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Гости получают <b>до 6% кешбэка</b> при оплате картой Freedom + в подарок AI-рассылки и аналитика.`
     );
   }
   const punch = punchParts.length
@@ -1130,14 +1130,6 @@ function render() {
       <div class="metrics">
         <div class="metric"><div class="v">${fmtMln(c.aggregatorLoss)}</div><div class="l">уходит агрегаторам / мес</div></div>
         <div class="metric"><div class="v">+${fmtMln(c.full.net)}</div><div class="l">чистый эффект Delivery / мес</div></div>
-        <div class="metric"><div class="v">10 дней</div><div class="l">до запуска</div></div>
-      </div>
-    `;
-  } else {
-    metricsHtml = `
-      <div class="metrics">
-        <div class="metric"><div class="v">${fmtMoney(c.monthlyAbon)}</div><div class="l">абонплата / мес</div></div>
-        <div class="metric"><div class="v">${fmtMoney(state.setup)}</div><div class="l">подключение / точка</div></div>
         <div class="metric"><div class="v">10 дней</div><div class="l">до запуска</div></div>
       </div>
     `;
@@ -1216,7 +1208,7 @@ function render() {
         Партнёр открывает Freedom-счёт → <b>подключение 0 ₸</b>. Три продукта включаются бесплатно: <b>Авто-подтягивание, Без Официанта, Без Кассира</b>. В подарок <b>AI-рассылки и стандартная аналитика</b> — каждая оплата картой Freedom попадает в базу гостя, с первой недели появляется ресурс для сегментов, рассылок и возвратов.
       </div>
       <div class="cashback-magnet">
-        <div class="cb-num">+16%</div>
+        <div class="cb-num">+6%</div>
         <div><b>Кешбэк гостям при оплате картой Freedom</b><br/>Естественный магнит лояльности и причина выбрать именно ваше заведение.</div>
       </div>
       <div class="pillars">
