@@ -332,6 +332,31 @@
   .preview-shell .row-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 14px; }
   .preview-shell .mini-h { font-weight: 700; font-size: 10pt; margin: 0 0 6px; color: var(--sr-green-dark); }
 
+  .preview-shell .qr-headline {
+    background: linear-gradient(135deg, var(--sr-green) 0%, var(--sr-green-dark) 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 12px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 18px;
+    align-items: center;
+  }
+  .preview-shell .qr-headline-value {
+    font-size: 22pt;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .preview-shell .qr-headline-label {
+    font-size: 10pt;
+    line-height: 1.35;
+    opacity: 0.95;
+  }
+  .preview-shell .qr-headline-label b { font-weight: 700; }
+
   .preview-shell .contact {
     border: 1px solid var(--sr-green-line);
     background: var(--sr-green-soft);
@@ -550,6 +575,25 @@
         </div>
       </div>
 
+      <h2>Прибыльность QR-меню</h2>
+      <div class="field-row two">
+        <div class="field">
+          <label>Заказов в день, всего</label>
+          <input type="number" id="f-ordersPerDay" min="0" step="10" />
+        </div>
+        <div class="field">
+          <label>Охват QR-меню (%)</label>
+          <input type="number" id="f-qrCoverage" min="0" max="100" step="5" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Прирост чека при кросс-продаже (%)</label>
+        <input type="number" id="f-uplift" min="0" step="1" />
+      </div>
+      <div class="hint">
+        Каждая 5-я транзакция через QR-меню (20%) включает дозаказ — десерт, топпинг, соус или напиток. По статистике сети это даёт устойчивый прирост среднего чека +16% внутри цифрового канала.
+      </div>
+
       <h2>Продукты пакета</h2>
 
       <label class="product" data-key="delivery">
@@ -699,6 +743,11 @@ const DEFAULTS = {
     turnover: 5000000,
     avgCheck: 5000,
     commission: 30
+  },
+  qrCalc: {
+    ordersPerDay: 200,
+    qrCoverage: 30,
+    uplift: 16
   },
   products: {
     delivery:  { enabled: true,  price: 60000, discount: 0 },
@@ -856,6 +905,9 @@ function bindForm() {
     "f-turnover":   ["business", "turnover"],
     "f-avgCheck":   ["business", "avgCheck"],
     "f-commission": ["business", "commission"],
+    "f-ordersPerDay": ["qrCalc", "ordersPerDay"],
+    "f-qrCoverage":   ["qrCalc", "qrCoverage"],
+    "f-uplift":       ["qrCalc", "uplift"],
     "f-setup":      ["setup"],
     "f-acquiring":  ["acquiring", "rate"],
     "f-manager":    ["manager", "name"],
@@ -978,6 +1030,9 @@ function initFormValues() {
     "f-turnover":   state.business.turnover,
     "f-avgCheck":   state.business.avgCheck,
     "f-commission": state.business.commission,
+    "f-ordersPerDay": state.qrCalc?.ordersPerDay ?? 200,
+    "f-qrCoverage":   state.qrCalc?.qrCoverage ?? 30,
+    "f-uplift":       state.qrCalc?.uplift ?? 16,
     "f-setup":      state.setup,
     "f-acquiring":  state.acquiring?.rate ?? 2,
     "f-manager":    state.manager.name,
@@ -1033,7 +1088,31 @@ function compute() {
     deliveryAbon,
     monthlyAbon,
     scenarios,
-    full: scenarios[scenarios.length - 1]
+    full: scenarios[scenarios.length - 1],
+    qr: (() => {
+      const q = s.qrCalc || {};
+      const ordersDay = Number(q.ordersPerDay) || 0;
+      const covPct    = Number(q.qrCoverage) || 0;
+      const upPct     = Number(q.uplift) || 0;
+      const avgCheck  = Number(s.business.avgCheck) || 0;
+      const ordersViaQr    = Math.round(ordersDay * covPct / 100);
+      const upliftPerCheck = avgCheck * (upPct / 100);
+      const newCheck       = avgCheck + upliftPerCheck;
+      const dailyExtra     = ordersViaQr * upliftPerCheck;
+      const monthlyExtra   = dailyExtra * 30;
+      const yearlyExtra    = monthlyExtra * 12;
+      const scenariosQr = [30, 50, 70, 100].map(pct => {
+        const ords = Math.round(ordersDay * pct / 100);
+        const yearly = ords * upliftPerCheck * 30 * 12;
+        return { pct, ords, yearly };
+      });
+      return {
+        ordersDay, covPct, upPct, avgCheck,
+        ordersViaQr, upliftPerCheck, newCheck,
+        dailyExtra, monthlyExtra, yearlyExtra,
+        scenarios: scenariosQr
+      };
+    })()
   };
 }
 
@@ -1223,6 +1302,66 @@ function render() {
         </div>
         <div class="cs-amount">+1,2 млн ₸</div>
       </div>
+    `;
+  }
+
+  // QR profitability calculator
+  if (c.qr.dailyExtra > 0) {
+    const dailyRevenueNow = c.qr.avgCheck * c.qr.ordersDay;
+    sections += `
+      <h2 class="sec">${secNum++}. Прибыльность QR-меню — на 1 точку</h2>
+      <div class="qr-headline">
+        <div class="qr-headline-value">+${fmtMln(c.qr.yearlyExtra)}/год</div>
+        <div class="qr-headline-label">дополнительной выручки с одной точки при охвате <b>${c.qr.covPct}%</b> гостей через QR-меню</div>
+      </div>
+      <p class="note">Расчёт основан на статистике сети партнёров: каждая 5-я транзакция (20%) через QR-меню включает дозаказ — десерт, топпинг, соус или напиток. Прирост +${c.qr.upPct}% применяется только к цифровому каналу.</p>
+      <div class="row-two">
+        <div>
+          <div class="mini-h">Текущие показатели</div>
+          <table class="tbl">
+            <tbody>
+              <tr><td>Средний чек</td><td class="num">${fmtMoney(c.qr.avgCheck)}</td></tr>
+              <tr><td>Заказов в день, всего</td><td class="num">${fmtNum(c.qr.ordersDay)}</td></tr>
+              <tr><td>Выручка / день</td><td class="num">${fmtMoney(dailyRevenueNow)}</td></tr>
+              <tr><td>Выручка / месяц</td><td class="num">${fmtMln(dailyRevenueNow * 30)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="mini-h">С внедрением Smart Restaurant</div>
+          <table class="tbl">
+            <tbody>
+              <tr><td>Через QR-меню (${c.qr.covPct}%)</td><td class="num">${fmtNum(c.qr.ordersViaQr)} заказов / день</td></tr>
+              <tr><td>Новый чек (+${c.qr.upPct}%)</td><td class="num">${fmtMoney(c.qr.newCheck)}</td></tr>
+              <tr><td>Прирост с 1 чека</td><td class="num">+${fmtMoney(c.qr.upliftPerCheck)}</td></tr>
+              <tr class="row-hi"><td>Доп. выручка / месяц</td><td class="num">+${fmtMln(c.qr.monthlyExtra)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 class="sec">${secNum++}. Потенциал по мере роста охвата</h2>
+      <p class="note">По мере привыкания гостей к QR-меню эффект масштабируется линейно. Ориентиры для одной точки.</p>
+      <table class="tbl">
+        <thead><tr>
+          <th>Охват QR-меню</th>
+          <th class="num">Заказов через QR / день</th>
+          <th class="num">Доп. выручка / год</th>
+        </tr></thead>
+        <tbody>
+          ${c.qr.scenarios.map(s => {
+            const isCurrent = s.pct === c.qr.covPct;
+            const tag = s.pct === 30 ? " — стартовый сценарий"
+                      : s.pct === 100 ? " — полный переход на цифру"
+                      : "";
+            return `<tr${isCurrent ? ' class="row-hi"' : ''}>
+              <td>${s.pct} %${tag}</td>
+              <td class="num">${fmtNum(s.ords)}</td>
+              <td class="num">+${fmtMln(s.yearly)}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
     `;
   }
 
