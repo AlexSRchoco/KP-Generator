@@ -660,7 +660,7 @@
         <input type="checkbox" data-product="kiosks" />
         <span>
           <div class="p-name">Киоски самообслуживания</div>
-          <div class="p-desc">Самозаказ и оплата на экране · <b style="color:var(--ui-accent)">−30 000 ₸ при Freedom + от 3 точек</b></div>
+          <div class="p-desc">Самозаказ и оплата на экране</div>
         </span>
         <div class="prices">
           <input type="number" data-price="kiosks" min="0" step="5000" />
@@ -668,9 +668,21 @@
         </div>
       </label>
 
+      <label class="product" data-key="brandedApp">
+        <input type="checkbox" data-product="brandedApp" />
+        <span>
+          <div class="p-name">Брендированное приложение</div>
+          <div class="p-desc">Заказ, оплата и лояльность в одном приложении с вашим логотипом · <b style="color:var(--ui-accent)">цена на всю сеть</b></div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="brandedApp" min="0" step="5000" />
+          <input type="number" data-discount="brandedApp" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
       <h2>Freedom-счёт</h2>
       <div class="hint">
-        Если партнёр открывает Freedom-счёт: подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. SR Delivery и Лояльность — на платной основе. Киоски самообслуживания: при Freedom + от 3 точек скидка 30 000 ₸/точка — впиши в поле «скидка» рядом с ценой.
+        Если партнёр открывает Freedom-счёт: подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Остальные продукты (SR Delivery, Лояльность, Киоски, Брендированное приложение) — на платной основе (можно поставить скидку рядом с ценой).
       </div>
       <label class="product" data-key="freedomAccount">
         <input type="checkbox" id="f-freedom" />
@@ -750,12 +762,13 @@ const DEFAULTS = {
     uplift: 16
   },
   products: {
-    delivery:  { enabled: true,  price: 60000, discount: 0 },
-    autoPay:   { enabled: false, price: 30000, discount: 0 },
-    noWaiter:  { enabled: false, price: 60000, discount: 0 },
-    loyalty:   { enabled: false, price: 60000, discount: 0 },
-    noCashier: { enabled: false, price: 60000, discount: 0 },
-    kiosks:    { enabled: false, price: 60000, discount: 0 }
+    delivery:   { enabled: true,  price: 60000,  discount: 0 },
+    autoPay:    { enabled: false, price: 30000,  discount: 0 },
+    noWaiter:   { enabled: false, price: 60000,  discount: 0 },
+    loyalty:    { enabled: false, price: 60000,  discount: 0 },
+    noCashier:  { enabled: false, price: 60000,  discount: 0 },
+    kiosks:     { enabled: false, price: 60000,  discount: 0 },
+    brandedApp: { enabled: false, price: 420000, discount: 0 }
   },
   setup: 50000,
   acquiring: { rate: 2 },
@@ -774,8 +787,13 @@ const PRODUCT_LABELS = {
   noWaiter: "Без Официанта",
   loyalty: "Программа Лояльности",
   noCashier: "Без Кассира",
-  kiosks: "Киоски самообслуживания"
+  kiosks: "Киоски самообслуживания",
+  brandedApp: "Брендированное приложение"
 };
+
+// Продукты с оплатой «на всю сеть» (flat). Остальные — за локацию.
+const NETWORK_WIDE_PRODUCTS = new Set(["loyalty", "brandedApp"]);
+function isPerLocation(key) { return !NETWORK_WIDE_PRODUCTS.has(key); }
 
 // Бесплатные продукты при открытии Freedom-счёта
 const FREEDOM_FREE_PRODUCTS = ["autoPay", "noWaiter", "noCashier"];
@@ -830,6 +848,16 @@ const PRODUCT_BULLETS = {
       "<b>Изменение меню</b> — актуальные позиции и цены обновляются на всех киосках из одной панели",
       "<b>Голосовой заказ</b> — в тестировании"
     ]
+  },
+  brandedApp: {
+    title: "Эффект «Брендированное приложение»",
+    intro: "Приложение с логотипом и цветами вашего бренда — гость устанавливает один раз и делает заказы, оплачивает и получает бонусы в едином фирменном стиле. Заказ, лояльность и история — в одном месте под вашим брендом.",
+    bullets: [
+      "<b>Единый интерфейс</b> — заказ, оплата, лояльность и история в одном приложении, без переключений между сайтом и мессенджерами",
+      "<b>Push-уведомления</b> — прямой канал коммуникации с гостем, без комиссий агрегаторов и посредников",
+      "<b>Программа лояльности встроена</b> — карточка гостя, бонусы и статусы всегда под рукой",
+      "<b>Бренд на экране гостя</b> — иконка приложения работает как постоянное напоминание о заведении"
+    ]
   }
 };
 
@@ -873,6 +901,16 @@ function fmtMln(n) {
 }
 function fmtNum(n) {
   return Math.round(n).toLocaleString("ru-RU").replace(/,/g, " ");
+}
+// Правильное склонение "точка / точки / точек"
+function pluralPoints(n) {
+  n = Math.abs(n);
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return "точек";
+  if (mod10 === 1) return "точка";
+  if (mod10 >= 2 && mod10 <= 4) return "точки";
+  return "точек";
 }
 function fmtSigned(n) {
   return (n >= 0 ? "+" : "−") + fmtMoney(Math.abs(n));
@@ -1058,14 +1096,20 @@ function effectivePrice(p, key) {
 
 function compute() {
   const s = state;
+  const points = Math.max(1, Number(s.partner?.points) || 1);
   const orders = s.business.avgCheck > 0 ? Math.round(s.business.turnover / s.business.avgCheck) : 0;
   const lossPerOrder = s.business.avgCheck * (s.business.commission / 100);
   const aggregatorLoss = orders * lossPerOrder;
 
-  const deliveryAbon = s.products.delivery.enabled ? effectivePrice(s.products.delivery, "delivery") : 0;
+  // Множитель: per-location продукты × points, сетевые (loyalty, brandedApp) × 1
+  const productMult = (k) => isPerLocation(k) ? points : 1;
+
+  const deliveryAbon = s.products.delivery.enabled
+    ? effectivePrice(s.products.delivery, "delivery") * productMult("delivery")
+    : 0;
   const monthlyAbon = Object.entries(s.products)
     .filter(([_, p]) => p.enabled)
-    .reduce((sum, [k, p]) => sum + effectivePrice(p, k), 0);
+    .reduce((sum, [k, p]) => sum + effectivePrice(p, k) * productMult(k), 0);
 
   const scenarioPcts = [0.30, 0.50, 0.70, 1.00];
   const scenarios = scenarioPcts.map(p => {
@@ -1089,6 +1133,8 @@ function compute() {
     monthlyAbon,
     scenarios,
     full: scenarios[scenarios.length - 1],
+    points,
+    productMult,
     qr: (() => {
       const q = s.qrCalc || {};
       const ordersDay = Number(q.ordersPerDay) || 0;
@@ -1190,6 +1236,11 @@ function render() {
   if (enabled.kiosks) {
     punchParts.push(
       `<b>Киоски самообслуживания</b> — гость сам оформляет заказ и платит на экране, кассир не нужен на приёме. Заказ мгновенно уходит на кухню.`
+    );
+  }
+  if (enabled.brandedApp) {
+    punchParts.push(
+      `<b>Брендированное приложение</b> — заказ, оплата и лояльность в одном приложении с вашим логотипом. Прямой канал коммуникации с гостем через push, без комиссий.`
     );
   }
   if (state.freedomAccount?.enabled) {
@@ -1367,12 +1418,14 @@ function render() {
 
   // Cost section
   const enabledProducts = Object.entries(state.products).filter(([_, p]) => p.enabled);
+  const points = c.points;
 
-  // Suma "без Freedom" — для отображения исходной стоимости
-  const fullAbonNoFreedom = enabledProducts.reduce((sum, [_, p]) => {
+  // Suma "без Freedom" — с учётом множителя за точки
+  const fullAbonNoFreedom = enabledProducts.reduce((sum, [k, p]) => {
     const base = p.price || 0;
     const disc = p.discount || 0;
-    return sum + Math.max(0, base - disc);
+    const mult = c.productMult(k);
+    return sum + Math.max(0, base - disc) * mult;
   }, 0);
 
   const productRows = enabledProducts
@@ -1381,17 +1434,34 @@ function render() {
       const disc = p.discount || 0;
       const base = p.price || 0;
       const beforeFreedom = Math.max(0, base - disc);
-      const eff = effectivePrice(p, k);
+      const perUnit = effectivePrice(p, k); // цена за единицу (точку или сеть)
+      const mult = c.productMult(k);
+      const eff = perUnit * mult;
+      const perLoc = isPerLocation(k);
+      const label = escapeHtml(PRODUCT_LABELS[k]);
+
+      // Подпись под ценой: разбивка по точкам или "на всю сеть"
+      const breakdown = perLoc && points > 1
+        ? `${fmtMoney(beforeFreedom)} × ${points} ${pluralPoints(points)}`
+        : perLoc
+          ? (disc > 0 ? `${fmtMoney(base)} − скидка ${fmtMoney(disc)}` : "")
+          : (disc > 0
+              ? `${fmtMoney(base)} − скидка ${fmtMoney(disc)} · на всю сеть`
+              : `на всю сеть`);
+
       let cell;
       if (freeAtFreedom) {
-        // зачёркнутая исходная цена + стрелка → 0
-        cell = `<s style="color:var(--sr-muted);font-weight:400">${fmtMoney(beforeFreedom)}</s> → <b style="color:var(--sr-green-dark)">0 ₸</b> / мес<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">при Freedom-счёте</span>`;
-      } else if (disc > 0) {
-        cell = `<b>${fmtMoney(eff)}</b> / мес<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${fmtMoney(base)} − скидка ${fmtMoney(disc)}</span>`;
+        cell = `<s style="color:var(--sr-muted);font-weight:400">${fmtMoney(beforeFreedom * mult)}</s> → <b style="color:var(--sr-green-dark)">0 ₸</b> / мес`;
+        const sub = perLoc && points > 1
+          ? `при Freedom-счёте · ${fmtMoney(beforeFreedom)} × ${points}`
+          : `при Freedom-счёте`;
+        cell += `<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${sub}</span>`;
+      } else if (breakdown) {
+        cell = `<b>${fmtMoney(eff)}</b> / мес<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${breakdown}</span>`;
       } else {
         cell = `${fmtMoney(eff)} / мес`;
       }
-      return `<tr><td>${escapeHtml(PRODUCT_LABELS[k])}</td><td class="num">${cell}</td></tr>`;
+      return `<tr><td>${label}</td><td class="num">${cell}</td></tr>`;
     })
     .join("");
 
@@ -1401,9 +1471,12 @@ function render() {
     ? `<s style="color:var(--sr-muted);font-weight:600">${fmtMoney(fullAbonNoFreedom)}</s> → <b style="color:var(--sr-green-dark)">${fmtMoney(c.monthlyAbon)}</b> / мес`
     : `${fmtMoney(c.monthlyAbon)} / мес`;
 
+  // Setup: разовое подключение × количество точек
+  const setupTotal = state.setup * points;
+  const setupBreakdown = points > 1 ? `${fmtMoney(state.setup)} × ${points} ${pluralPoints(points)}` : "";
   const setupRow = isFreedom
-    ? `<tr><td>Подключение на точку (при открытии Freedom-счёта)</td><td class="num"><s style="color:var(--sr-muted);font-weight:400">${fmtMoney(state.setup)}</s> → <b style="color:var(--sr-green-dark)">0 ₸</b> — бесплатно</td></tr>`
-    : `<tr><td>Подключение на точку (разово)</td><td class="num">${fmtMoney(state.setup)} / точка</td></tr>`;
+    ? `<tr><td>Подключение (разово, при Freedom-счёте)</td><td class="num"><s style="color:var(--sr-muted);font-weight:400">${fmtMoney(setupTotal)}</s> → <b style="color:var(--sr-green-dark)">0 ₸</b> — бесплатно${setupBreakdown ? `<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${setupBreakdown}</span>` : ""}</td></tr>`
+    : `<tr><td>Подключение (разово)</td><td class="num"><b>${fmtMoney(setupTotal)}</b>${setupBreakdown ? `<span style="color:var(--sr-muted);font-weight:400;font-size:7.5pt;display:block">${setupBreakdown}</span>` : ""}</td></tr>`;
 
   const guestRow = isFreedom
     ? `<tr><td>Аналитика по всем гостям (отчёт по предпочтениям, популярным позициям, отзывам через наш сервис, периодичность посещения)</td><td class="num"><b style="color:var(--sr-green-dark)">Включено</b></td></tr>`
