@@ -1147,7 +1147,11 @@ function compute() {
       const dailyExtra     = ordersViaQr * upliftPerCheck;
       const monthlyExtra   = dailyExtra * 30;
       const yearlyExtra    = monthlyExtra * 12;
-      const scenariosQr = [30, 50, 70, 100].map(pct => {
+      // Сценарии: всегда включаем текущий охват, затем milestone-и выше него
+      const cappedCov = Math.min(100, Math.max(0, covPct));
+      const milestones = [30, 50, 70, 100].filter(p => p > cappedCov);
+      const scenarioPcts = cappedCov > 0 ? [cappedCov, ...milestones] : [30, 50, 70, 100];
+      const scenariosQr = scenarioPcts.map(pct => {
         const ords = Math.round(ordersDay * pct / 100);
         const yearly = ords * upliftPerCheck * 30 * 12;
         return { pct, ords, yearly };
@@ -1402,7 +1406,7 @@ function render() {
         <tbody>
           ${c.qr.scenarios.map(s => {
             const isCurrent = s.pct === c.qr.covPct;
-            const tag = s.pct === 30 ? " — стартовый сценарий"
+            const tag = isCurrent ? " — текущий сценарий"
                       : s.pct === 100 ? " — полный переход на цифру"
                       : "";
             return `<tr${isCurrent ? ' class="row-hi"' : ''}>
