@@ -1,0 +1,2273 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Генератор КП — Freedom Restaurants</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  /* ==================== Freedom Dark Theme ==================== */
+  :root {
+    /* Palette (Freedom pitch style) */
+    --f-bg:          #0a0f0d;
+    --f-bg-2:        #0e1512;
+    --f-panel:       #111a15;
+    --f-panel-2:     #16211a;
+    --f-card:        #131e17;
+    --f-card-2:      #182922;
+    --f-border:      rgba(15, 223, 122, 0.15);
+    --f-border-2:    rgba(255, 255, 255, 0.06);
+    --f-border-hi:   #0FDF7A;
+
+    --f-green:       #0FDF7A;
+    --f-green-dark:  #0BA55A;
+    --f-green-soft:  rgba(15, 223, 122, 0.10);
+    --f-green-glow:  rgba(15, 223, 122, 0.25);
+
+    --f-text:        #ffffff;
+    --f-text-muted:  #98a29c;
+    --f-text-dim:    #6b7973;
+    --f-label:       #7a8880;
+
+    --f-warn:        #FFB020;
+    --f-accent-1:    #FF6B2C;
+    --f-accent-2:    #FFB020;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--f-bg);
+    color: var(--f-text);
+    min-height: 100vh;
+  }
+  input, button, select, textarea { font: inherit; color: inherit; }
+
+  /* ==================== App shell ==================== */
+  .app {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background:
+      radial-gradient(ellipse 1200px 800px at 15% 0%, rgba(15, 223, 122, 0.06), transparent 55%),
+      var(--f-bg);
+  }
+
+  .app-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--f-border-2);
+    background: rgba(10, 15, 13, 0.85);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 700; font-size: 14px; color: var(--f-text);
+  }
+  .brand .mark {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    background: transparent;
+    padding: 0;
+  }
+  .brand .mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .brand .sub { color: var(--f-text-muted); font-weight: 400; margin-left: 4px; }
+  .toolbar { display: flex; gap: 8px; }
+
+  .btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--f-border-2);
+    background: var(--f-panel);
+    color: var(--f-text);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn:hover { border-color: var(--f-border-hi); }
+  .btn.ghost { background: transparent; }
+  .btn.primary {
+    background: var(--f-green); color: #0a0f0d;
+    border-color: var(--f-green);
+    box-shadow: 0 0 20px var(--f-green-glow);
+  }
+  .btn.primary:hover { background: var(--f-green-dark); border-color: var(--f-green-dark); }
+
+  .app-body {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ==================== Form pane ==================== */
+  .form-pane {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 63px);
+    border-right: 1px solid var(--f-border-2);
+    background: var(--f-bg-2);
+  }
+  .form-pane::-webkit-scrollbar { width: 8px; }
+  .form-pane::-webkit-scrollbar-thumb { background: var(--f-panel-2); border-radius: 4px; }
+
+  .form-pane .hint {
+    background: var(--f-green-soft);
+    border: 1px solid var(--f-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--f-text-muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .form-pane .hint b { color: var(--f-green); }
+
+  .form-pane h2 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--f-green);
+    font-weight: 700;
+    margin: 22px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--f-border-2);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-pane h2::before {
+    content: ""; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--f-green);
+    box-shadow: 0 0 8px var(--f-green-glow);
+  }
+  .form-pane h2:first-child { margin-top: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .field label {
+    font-size: 11px;
+    color: var(--f-text-muted);
+    font-weight: 500;
+  }
+  .field input, .field textarea {
+    padding: 8px 10px;
+    background: var(--f-panel);
+    border: 1px solid var(--f-border-2);
+    border-radius: 6px;
+    color: var(--f-text);
+    font-size: 13px;
+    transition: border-color .15s;
+  }
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--f-green);
+    box-shadow: 0 0 0 2px var(--f-green-soft);
+  }
+  .field input::placeholder { color: var(--f-text-dim); }
+
+  .field-row { display: grid; gap: 8px; margin-bottom: 10px; }
+  .field-row.two { grid-template-columns: 1fr 1fr; }
+  .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .field-row .field { margin-bottom: 0; }
+
+  /* Product rows */
+  .product {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 12px;
+    background: var(--f-panel);
+    border: 1px solid var(--f-border-2);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+  }
+  .product:hover { border-color: var(--f-border); }
+  .product.on {
+    background: var(--f-panel-2);
+    border-color: var(--f-green);
+    box-shadow: 0 0 0 1px var(--f-green-soft);
+  }
+  .product input[type=checkbox] {
+    margin: 2px 0 0; accent-color: var(--f-green);
+    width: 16px; height: 16px;
+  }
+  .product .p-name {
+    font-size: 13px; font-weight: 700; color: var(--f-text);
+    margin-bottom: 2px;
+  }
+  .product .p-desc {
+    font-size: 11px; color: var(--f-text-muted); line-height: 1.4;
+  }
+  .product .p-desc b { color: var(--f-green); font-weight: 600; }
+  .product .prices { display: flex; flex-direction: column; gap: 4px; }
+  .product .prices input {
+    width: 90px;
+    padding: 5px 7px;
+    background: var(--f-bg-2);
+    border: 1px solid var(--f-border-2);
+    border-radius: 5px;
+    color: var(--f-text);
+    font-size: 12px;
+    text-align: right;
+  }
+  .product .prices input:focus { outline: none; border-color: var(--f-green); }
+  .product .prices input::placeholder { color: var(--f-text-dim); font-size: 10px; }
+
+  /* ==================== Preview pane ==================== */
+  .preview-pane {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 63px);
+    background: var(--f-bg);
+  }
+  .preview-pane::-webkit-scrollbar { width: 10px; }
+  .preview-pane::-webkit-scrollbar-thumb { background: var(--f-panel-2); border-radius: 5px; }
+
+  /* Preview "document" shell */
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  /* ==================== KP document (preview + print) ==================== */
+  .preview-shell {
+    background: var(--f-bg);
+    color: var(--f-text);
+    padding: 32px 40px 40px;
+    border-radius: 12px;
+    border: 1px solid var(--f-border-2);
+    min-height: 400px;
+  }
+
+  /* Top bar of every "slide-section" — small label with green dot */
+  .preview-shell .kp-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .preview-shell .kp-topbar-left {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--f-border-2);
+    border-radius: 24px;
+  }
+  .preview-shell .kp-topbar-left .dot-y {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--f-warn);
+    box-shadow: 0 0 6px rgba(255, 176, 32, 0.6);
+  }
+  .preview-shell .kp-topbar-left .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+    font-weight: 700; color: var(--f-text);
+  }
+  .preview-shell .kp-topbar-right {
+    font-size: 11px; color: var(--f-text-muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .preview-shell .kp-topbar-right .f-logo {
+    width: 26px; height: 30px; object-fit: contain; display: block;
+  }
+  .preview-shell .kp-topbar-right .f-word {
+    font-size: 15px; font-weight: 800; letter-spacing: 0.02em;
+    color: var(--f-text);
+  }
+
+  /* KP cover section */
+  .preview-shell .kp-cover {
+    padding: 40px 0 30px;
+    border-bottom: 1px solid var(--f-border-2);
+    margin-bottom: 30px;
+  }
+  .preview-shell .kp-cover .cover-partner {
+    font-size: 44px; font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+    color: var(--f-text);
+    text-transform: uppercase;
+  }
+  .preview-shell .kp-cover .cover-sub {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 20px; font-weight: 700;
+    color: var(--f-green);
+    margin-bottom: 20px;
+  }
+  .preview-shell .kp-cover .cover-sub::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--f-green);
+    box-shadow: 0 0 10px var(--f-green-glow);
+  }
+  .preview-shell .kp-cover .cover-line {
+    height: 2px; width: 60%;
+    background: linear-gradient(90deg, var(--f-accent-1), var(--f-accent-2), transparent);
+    margin-bottom: 20px;
+  }
+  .preview-shell .kp-cover .cover-tag {
+    font-size: 15px; color: var(--f-text-muted); line-height: 1.5;
+    max-width: 700px;
+  }
+  .preview-shell .kp-cover .cover-meta {
+    display: flex; gap: 32px; margin-top: 20px;
+    font-size: 12px;
+  }
+  .preview-shell .kp-cover .cover-meta .m {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .preview-shell .kp-cover .cover-meta .m .k {
+    color: var(--f-text-dim); text-transform: uppercase;
+    letter-spacing: 0.08em; font-size: 9.5px; font-weight: 600;
+  }
+  .preview-shell .kp-cover .cover-meta .m .v {
+    color: var(--f-text); font-weight: 600;
+  }
+
+  /* Section heading pattern */
+  .preview-shell .sec-block { margin: 0 0 44px; }
+  .preview-shell .sec-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em;
+    font-weight: 700; color: var(--f-text);
+    margin-bottom: 12px;
+  }
+  .preview-shell .sec-label::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--f-green);
+    box-shadow: 0 0 8px var(--f-green-glow);
+  }
+  .preview-shell .sec-label.warn::before { background: var(--f-warn); box-shadow: 0 0 8px rgba(255,176,32,0.6); }
+  .preview-shell .sec-title {
+    font-size: 32px; font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 18px; color: var(--f-text);
+  }
+  .preview-shell .sec-title.small { font-size: 24px; }
+  .preview-shell .sec-lead {
+    font-size: 14px; color: var(--f-text-muted); line-height: 1.5;
+    max-width: 800px; margin: 0 0 20px;
+  }
+  .preview-shell .sec-lead b, .preview-shell .sec-lead strong { color: var(--f-text); font-weight: 600; }
+
+  /* Numbered summary cards (like slide 3) */
+  .preview-shell .num-cards {
+    display: grid; gap: 12px; margin: 12px 0 20px;
+  }
+  .preview-shell .num-cards.n2 { grid-template-columns: 1fr 1fr; }
+  .preview-shell .num-cards.n3 { grid-template-columns: repeat(3, 1fr); }
+  .preview-shell .num-cards.n4 { grid-template-columns: repeat(4, 1fr); }
+  .preview-shell .num-cards.n5 { grid-template-columns: repeat(5, 1fr); }
+  .preview-shell .num-cards.n6 { grid-template-columns: repeat(3, 1fr); }
+  .preview-shell .num-cards.n7 { grid-template-columns: repeat(4, 1fr); }
+  .preview-shell .num-card {
+    background: var(--f-card);
+    border: 1px solid var(--f-border);
+    border-radius: 14px;
+    padding: 18px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .preview-shell .num-card .num {
+    font-size: 26px; font-weight: 800; color: var(--f-green);
+    letter-spacing: -0.02em; line-height: 1;
+  }
+  .preview-shell .num-card .h {
+    font-size: 14px; font-weight: 700; color: var(--f-text);
+    line-height: 1.25;
+  }
+  .preview-shell .num-card .t {
+    font-size: 11.5px; color: var(--f-text-muted); line-height: 1.45;
+  }
+  .preview-shell .sec-outro {
+    font-size: 15px; line-height: 1.5; margin: 16px 0 0;
+    color: var(--f-text);
+  }
+  .preview-shell .sec-outro .accent { color: var(--f-green); font-weight: 700; }
+
+  /* Effect cards for a product slide */
+  .preview-shell .fx-cards {
+    display: grid; gap: 12px; margin: 12px 0 20px;
+  }
+  .preview-shell .fx-cards.n2 { grid-template-columns: 1fr 1fr; }
+  .preview-shell .fx-cards.n3 { grid-template-columns: repeat(3, 1fr); }
+  .preview-shell .fx-cards.n4 { grid-template-columns: repeat(4, 1fr); }
+  .preview-shell .fx-card {
+    background: var(--f-card);
+    border: 1px solid var(--f-border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative;
+  }
+  .preview-shell .fx-card .fx-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--f-green);
+    box-shadow: 0 0 6px var(--f-green-glow);
+    margin-bottom: 3px;
+  }
+  .preview-shell .fx-card .h {
+    font-size: 13.5px; font-weight: 700; color: var(--f-text);
+    line-height: 1.25;
+  }
+  .preview-shell .fx-card .t {
+    font-size: 11.5px; color: var(--f-text-muted); line-height: 1.45;
+  }
+
+  /* Big-number highlight box (like slide 12) */
+  .preview-shell .big-num {
+    background: var(--f-card);
+    border: 1px solid var(--f-border);
+    border-radius: 16px;
+    padding: 28px 30px;
+    margin: 12px 0 20px;
+  }
+  .preview-shell .big-num .n {
+    font-size: 68px; font-weight: 800;
+    color: var(--f-green); letter-spacing: -0.03em; line-height: 1;
+    display: inline-block;
+  }
+  .preview-shell .big-num .n .star { color: var(--f-green); font-size: 40px; vertical-align: super; }
+  .preview-shell .big-num .l {
+    font-size: 14px; color: var(--f-text-muted); margin-top: 12px;
+    line-height: 1.5; max-width: 700px;
+  }
+  .preview-shell .big-num .l b { color: var(--f-text); font-weight: 600; }
+
+  /* Two-number "now / after" style (like slide 7) */
+  .preview-shell .now-after {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin: 12px 0 20px;
+  }
+  .preview-shell .now-after > div {
+    background: var(--f-card);
+    border: 1px solid var(--f-border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    min-height: 190px;
+    display: flex; flex-direction: column;
+  }
+  .preview-shell .now-after .side.after {
+    border-color: var(--f-green);
+    box-shadow: 0 0 0 1px var(--f-green-soft), 0 0 40px rgba(15,223,122,0.05);
+  }
+  .preview-shell .now-after .side-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em;
+    font-weight: 700; color: var(--f-text-muted); margin-bottom: 10px;
+  }
+  .preview-shell .now-after .side.after .side-label { color: var(--f-green); }
+  .preview-shell .now-after .side-num {
+    font-size: 44px; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+    color: var(--f-text); margin-bottom: 8px;
+  }
+  .preview-shell .now-after .side.after .side-num { color: var(--f-green); }
+  .preview-shell .now-after .side-cap {
+    font-size: 12px; color: var(--f-text-muted); margin-bottom: auto; line-height: 1.4;
+  }
+  .preview-shell .now-after .side-note {
+    font-size: 11px; color: var(--f-text-dim); line-height: 1.4; margin-top: 14px;
+  }
+
+  /* Big compare block (like slide 11) — rows */
+  .preview-shell .compare-block {
+    display: grid; grid-template-columns: 130px 1fr 1fr; gap: 12px;
+    margin: 12px 0 20px;
+  }
+  .preview-shell .compare-block .cb-labels { display: flex; flex-direction: column; padding-top: 60px; }
+  .preview-shell .compare-block .cb-labels .l {
+    padding: 18px 0; font-size: 13px; font-weight: 700;
+    color: var(--f-text); text-align: right;
+    border-bottom: 1px dashed var(--f-border-2);
+    line-height: 1.3;
+  }
+  .preview-shell .compare-block .cb-labels .l:last-child { border-bottom: 0; }
+  .preview-shell .compare-block .cb-side {
+    background: var(--f-green);
+    color: #0a0f0d;
+    border-radius: 20px;
+    padding: 24px 26px;
+  }
+  .preview-shell .compare-block .cb-side.now { background: #cfefdf; }
+  .preview-shell .compare-block .cb-side .side-label {
+    font-size: 20px; font-weight: 800; letter-spacing: 0.02em;
+    text-transform: uppercase; margin-bottom: 20px;
+  }
+  .preview-shell .compare-block .cb-side .row {
+    padding: 18px 0; font-size: 15px; font-weight: 700;
+    border-bottom: 1px dashed rgba(10,15,13,0.15);
+    line-height: 1.35;
+  }
+  .preview-shell .compare-block .cb-side .row:last-child { border-bottom: 0; }
+  .preview-shell .compare-block .cb-side .row small { display: block; font-size: 11px; font-weight: 500; opacity: 0.75; margin-top: 3px; }
+
+  /* Conditions cards (like slide 8: "1.6%" + "0 ₸") */
+  .preview-shell .cond-cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin: 12px 0 20px;
+  }
+  .preview-shell .cond-card {
+    background: var(--f-card);
+    border: 1px solid var(--f-green);
+    border-radius: 16px;
+    padding: 24px 26px;
+    display: flex; flex-direction: column; gap: 6px;
+    box-shadow: 0 0 0 1px var(--f-green-soft);
+  }
+  .preview-shell .cond-card .cond-num {
+    font-size: 40px; font-weight: 800; color: var(--f-green);
+    letter-spacing: -0.02em; line-height: 1;
+  }
+  .preview-shell .cond-card .cond-label {
+    font-size: 13px; font-weight: 700; color: var(--f-text);
+    margin-top: 4px;
+  }
+  .preview-shell .cond-card .cond-note {
+    font-size: 11.5px; color: var(--f-text-muted); line-height: 1.45;
+    margin-top: 4px;
+  }
+
+  /* Product hero (title on left, icon on right) */
+  .preview-shell .product-hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: start;
+    margin-bottom: 14px;
+  }
+  .preview-shell .product-hero-content { min-width: 0; }
+  .preview-shell .product-hero-content .sec-title,
+  .preview-shell .product-hero-content .sec-lead { margin-right: 0; }
+  .preview-shell .product-hero-icon {
+    width: 120px; height: 120px;
+    background: radial-gradient(circle at 30% 30%, var(--f-card-2), var(--f-card));
+    border: 1px solid var(--f-green);
+    border-radius: 22px;
+    display: grid; place-items: center;
+    box-shadow: 0 0 40px rgba(15, 223, 122, 0.10), inset 0 0 30px rgba(15, 223, 122, 0.05);
+    flex-shrink: 0;
+    color: var(--f-green);
+  }
+  .preview-shell .product-hero-icon svg {
+    width: 70%; height: 70%;
+    filter: drop-shadow(0 0 6px var(--f-green-glow));
+  }
+  @media (max-width: 900px) {
+    .preview-shell .product-hero { grid-template-columns: 1fr; }
+    .preview-shell .product-hero-icon { width: 90px; height: 90px; }
+  }
+
+  /* Tables */
+  .preview-shell table.tbl {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    margin: 0 0 14px;
+    background: var(--f-card);
+    border: 1px solid var(--f-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .preview-shell table.tbl th, .preview-shell table.tbl td {
+    padding: 12px 16px; text-align: left;
+    border-bottom: 1px solid var(--f-border-2);
+  }
+  .preview-shell table.tbl tr:last-child td { border-bottom: 0; }
+  .preview-shell table.tbl th {
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--f-text-muted); font-weight: 700;
+    background: rgba(255,255,255,0.02);
+  }
+  .preview-shell table.tbl tr.row-hi td {
+    background: var(--f-green-soft);
+    color: var(--f-green); font-weight: 700;
+  }
+  .preview-shell table.tbl td.num, .preview-shell table.tbl th.num {
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .preview-shell table.tbl td b { color: var(--f-text); font-weight: 700; }
+  .preview-shell table.tbl td .sub {
+    display: block; font-size: 10.5px; color: var(--f-text-dim);
+    font-weight: 500; margin-top: 2px;
+  }
+  .preview-shell table.tbl td .strike { text-decoration: line-through; color: var(--f-text-dim); font-weight: 500; }
+  .preview-shell table.tbl td .green { color: var(--f-green); font-weight: 700; }
+
+  /* Contact block */
+  .preview-shell .contact-block {
+    display: grid; grid-template-columns: auto 1fr; gap: 16px;
+    align-items: center;
+    background: var(--f-card);
+    border: 1px solid var(--f-border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-top: 24px;
+  }
+  .preview-shell .contact-block .av {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--f-green); color: #0a0f0d;
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 20px;
+  }
+  .preview-shell .contact-block .role {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--f-text-muted); font-weight: 700; margin-bottom: 4px;
+  }
+  .preview-shell .contact-block .name { font-size: 18px; font-weight: 700; color: var(--f-text); }
+  .preview-shell .contact-block .phone {
+    font-size: 15px; color: var(--f-green); font-weight: 700;
+    font-variant-numeric: tabular-nums; margin-top: 3px;
+  }
+
+  /* Footer strip */
+  .preview-shell .kp-foot {
+    margin-top: 30px; padding-top: 16px;
+    border-top: 1px solid var(--f-border-2);
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--f-text-dim);
+  }
+  .preview-shell .kp-foot .footer-brand span { color: var(--f-green); }
+
+  /* Note text */
+  .preview-shell .note {
+    font-size: 12px; color: var(--f-text-muted); margin: 6px 0 14px; line-height: 1.5;
+  }
+  .preview-shell .mini-h {
+    font-weight: 700; font-size: 12px; margin: 0 0 6px;
+    color: var(--f-green); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .preview-shell .row-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 18px; }
+
+  /* Section divider (for CTA) */
+  .preview-shell .accent-line {
+    height: 2px; width: 120px;
+    background: linear-gradient(90deg, var(--f-accent-1), var(--f-accent-2));
+    margin: 14px 0 18px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .preview-shell .num-cards.n5, .preview-shell .num-cards.n7 { grid-template-columns: repeat(3, 1fr); }
+    .preview-shell .num-cards.n4 { grid-template-columns: repeat(2, 1fr); }
+    .preview-shell .fx-cards.n4 { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .app-body { grid-template-columns: 1fr; }
+    .form-pane { max-height: 50vh; }
+    .preview-pane { max-height: 50vh; }
+    .preview-shell .num-cards.n3, .preview-shell .num-cards.n4, .preview-shell .num-cards.n5, .preview-shell .num-cards.n6, .preview-shell .num-cards.n7 { grid-template-columns: 1fr 1fr; }
+    .preview-shell .fx-cards.n3, .preview-shell .fx-cards.n4 { grid-template-columns: 1fr; }
+    .preview-shell .now-after { grid-template-columns: 1fr; }
+    .preview-shell .compare-block { grid-template-columns: 1fr; }
+    .preview-shell .compare-block .cb-labels { display: none; }
+    .preview-shell .row-two { grid-template-columns: 1fr; }
+  }
+
+
+  /* PDF generation overlay */
+  .pdf-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10, 15, 13, 0.88);
+    backdrop-filter: blur(4px);
+    display: none; place-items: center;
+  }
+  .pdf-overlay.on { display: grid; }
+  .pdf-overlay .box {
+    background: var(--f-panel);
+    border: 1px solid var(--f-green);
+    border-radius: 14px;
+    padding: 28px 36px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(15, 223, 122, 0.15);
+  }
+  .pdf-overlay .spin {
+    width: 34px; height: 34px; margin: 0 auto 14px;
+    border: 3px solid var(--f-border-2);
+    border-top-color: var(--f-green);
+    border-radius: 50%;
+    animation: pdfspin 0.8s linear infinite;
+  }
+  @keyframes pdfspin { to { transform: rotate(360deg); } }
+  .pdf-overlay .txt { font-size: 14px; font-weight: 600; color: var(--f-text); }
+  .pdf-overlay .sub { font-size: 12px; color: var(--f-text-muted); margin-top: 5px; }
+
+  /* Offscreen PDF staging area */
+  #pdf-stage {
+    position: fixed; left: -10000px; top: 0;
+    width: 794px;
+    background: var(--f-bg);
+    z-index: -1;
+  }
+  #pdf-stage .pdf-page {
+    width: 794px;
+    background: var(--f-bg);
+    padding: 44px 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    min-height: 0;
+    max-width: none;
+  }
+
+  /* A4-friendly layout overrides for PDF rendering */
+  #pdf-stage .num-cards.n4 { grid-template-columns: repeat(2, 1fr); }
+  #pdf-stage .num-cards.n5,
+  #pdf-stage .num-cards.n6,
+  #pdf-stage .num-cards.n7 { grid-template-columns: repeat(3, 1fr); }
+  #pdf-stage .fx-cards.n3 { grid-template-columns: repeat(3, 1fr); }
+  #pdf-stage .fx-cards.n4 { grid-template-columns: repeat(2, 1fr); }
+  #pdf-stage .now-after { grid-template-columns: 1fr 1fr; }
+  #pdf-stage .compare-block { grid-template-columns: 96px 1fr 1fr; gap: 8px; }
+  #pdf-stage .compare-block .cb-labels { padding-top: 46px; }
+  #pdf-stage .compare-block .cb-labels .l { font-size: 11px; padding: 12px 0; }
+  #pdf-stage .compare-block .cb-side { padding: 16px 18px; border-radius: 14px; }
+  #pdf-stage .compare-block .cb-side .side-label { font-size: 15px; margin-bottom: 14px; }
+  #pdf-stage .compare-block .cb-side .row { font-size: 12px; padding: 12px 0; }
+  #pdf-stage .compare-block .cb-side .row small { font-size: 9.5px; }
+  #pdf-stage .cond-cards { grid-template-columns: 1fr 1fr; }
+  #pdf-stage .row-two { grid-template-columns: 1fr 1fr; }
+
+  #pdf-stage .kp-cover .cover-partner { font-size: 38px; }
+  #pdf-stage .sec-title { font-size: 26px; }
+  #pdf-stage .sec-title.small { font-size: 20px; }
+  #pdf-stage .big-num .n { font-size: 54px; }
+  #pdf-stage .product-hero-icon { width: 100px; height: 100px; }
+  #pdf-stage table.tbl { font-size: 12px; }
+  #pdf-stage table.tbl th, #pdf-stage table.tbl td { padding: 10px 13px; }
+
+  /* ==================== PRINT ==================== */
+  @page { size: A4 portrait; margin: 0; }
+
+  @media print {
+    html, body {
+      background: var(--f-bg) !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Hide the app chrome — print only the KP */
+    .app-header, .form-pane { display: none !important; }
+
+    .app {
+      display: block !important;
+      min-height: 0 !important;
+      background: var(--f-bg) !important;
+    }
+    .app-body {
+      display: block !important;
+      grid-template-columns: none !important;
+      min-height: 0 !important;
+    }
+    .preview-pane {
+      max-height: none !important;
+      overflow: visible !important;
+      padding: 0 !important;
+      background: var(--f-bg) !important;
+      border: 0 !important;
+    }
+    .preview-shell {
+      padding: 12mm 11mm !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      min-height: 0 !important;
+      background: var(--f-bg) !important;
+      max-width: none !important;
+    }
+
+    /* Page-break behaviour */
+    .preview-shell .sec-block {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-bottom: 22px !important;
+    }
+    .preview-shell .kp-cover { break-after: auto; page-break-after: auto; }
+    .preview-shell table.tbl { break-inside: auto; page-break-inside: auto; }
+    .preview-shell table.tbl tr { break-inside: avoid; page-break-inside: avoid; }
+    .preview-shell table.tbl thead { display: table-header-group; }
+    .preview-shell .num-card,
+    .preview-shell .fx-card,
+    .preview-shell .cond-card,
+    .preview-shell .now-after > div,
+    .preview-shell .contact-block { break-inside: avoid; page-break-inside: avoid; }
+
+    /* Compare block may be tall — let it break rather than push a blank page */
+    .preview-shell .compare-block {
+      break-inside: auto; page-break-inside: auto;
+    }
+    .preview-shell .compare-block .cb-side .row { break-inside: avoid; page-break-inside: avoid; }
+
+    /* Scale typography down to fit A4 */
+    .preview-shell .kp-cover { padding: 12px 0 18px !important; margin-bottom: 20px !important; }
+    .preview-shell .kp-cover .cover-partner { font-size: 30pt !important; }
+    .preview-shell .kp-cover .cover-sub { font-size: 14pt !important; margin-bottom: 12px !important; }
+    .preview-shell .kp-cover .cover-tag { font-size: 10.5pt !important; }
+    .preview-shell .kp-cover .cover-meta { font-size: 8.5pt !important; gap: 20px !important; margin-top: 12px !important; }
+
+    .preview-shell .sec-title { font-size: 17pt !important; margin-bottom: 10px !important; }
+    .preview-shell .sec-title.small { font-size: 13pt !important; }
+    .preview-shell .sec-label { font-size: 8pt !important; margin-bottom: 8px !important; }
+    .preview-shell .sec-lead { font-size: 9.5pt !important; margin-bottom: 12px !important; }
+    .preview-shell .sec-outro { font-size: 10pt !important; }
+
+    .preview-shell .num-card { padding: 12px 11px !important; border-radius: 10px !important; }
+    .preview-shell .num-card .num { font-size: 15pt !important; }
+    .preview-shell .num-card .h { font-size: 9.5pt !important; }
+    .preview-shell .num-card .t { font-size: 8pt !important; }
+
+    .preview-shell .fx-card { padding: 11px !important; border-radius: 10px !important; }
+    .preview-shell .fx-card .h { font-size: 9.5pt !important; }
+    .preview-shell .fx-card .t { font-size: 8pt !important; }
+
+    .preview-shell .product-hero { gap: 16px !important; margin-bottom: 10px !important; }
+    .preview-shell .product-hero-icon {
+      width: 74px !important; height: 74px !important;
+      border-radius: 14px !important; box-shadow: none !important;
+    }
+
+    .preview-shell .now-after > div { padding: 14px 16px !important; min-height: 0 !important; }
+    .preview-shell .now-after .side-num { font-size: 22pt !important; }
+    .preview-shell .now-after .side-label { font-size: 8pt !important; }
+    .preview-shell .now-after .side-cap { font-size: 9pt !important; }
+    .preview-shell .now-after .side-note { font-size: 8pt !important; margin-top: 8px !important; }
+
+    .preview-shell .compare-block { grid-template-columns: 105px 1fr 1fr !important; gap: 8px !important; }
+    .preview-shell .compare-block .cb-labels { padding-top: 42px !important; }
+    .preview-shell .compare-block .cb-labels .l { font-size: 8.5pt !important; padding: 11px 0 !important; }
+    .preview-shell .compare-block .cb-side { padding: 14px 16px !important; border-radius: 12px !important; }
+    .preview-shell .compare-block .cb-side .side-label { font-size: 12pt !important; margin-bottom: 12px !important; }
+    .preview-shell .compare-block .cb-side .row { font-size: 9.5pt !important; padding: 11px 0 !important; }
+    .preview-shell .compare-block .cb-side .row small { font-size: 7.5pt !important; }
+
+    .preview-shell .cond-card { padding: 16px 18px !important; border-radius: 12px !important; box-shadow: none !important; }
+    .preview-shell .cond-card .cond-num { font-size: 22pt !important; }
+    .preview-shell .cond-card .cond-label { font-size: 9.5pt !important; }
+    .preview-shell .cond-card .cond-note { font-size: 8pt !important; }
+
+    .preview-shell table.tbl { font-size: 9pt !important; }
+    .preview-shell table.tbl th, .preview-shell table.tbl td { padding: 8px 11px !important; }
+    .preview-shell table.tbl th { font-size: 7.5pt !important; }
+    .preview-shell table.tbl td .sub { font-size: 7.5pt !important; }
+
+    .preview-shell .contact-block { padding: 14px 18px !important; border-radius: 12px !important; }
+    .preview-shell .contact-block .av { width: 42px !important; height: 42px !important; font-size: 14pt !important; }
+    .preview-shell .contact-block .name { font-size: 12pt !important; }
+    .preview-shell .contact-block .phone { font-size: 10.5pt !important; }
+    .preview-shell .contact-block .role { font-size: 7.5pt !important; }
+
+    .preview-shell .kp-topbar { margin-bottom: 14px !important; }
+    .preview-shell .kp-topbar-left { padding: 5px 12px !important; }
+    .preview-shell .kp-topbar-left .label { font-size: 7.5pt !important; }
+    .preview-shell .kp-topbar-right .f-logo { width: 22px !important; height: 25px !important; }
+    .preview-shell .kp-topbar-right .f-word { font-size: 11pt !important; }
+
+    .preview-shell .note { font-size: 8pt !important; }
+    .preview-shell .mini-h { font-size: 9pt !important; }
+    .preview-shell .kp-foot { font-size: 8pt !important; margin-top: 18px !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="mark" id="app-logo"></div>
+      <div>Генератор КП <span class="sub">Freedom Restaurants</span></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="btn-reset" title="Очистить форму и localStorage">Сбросить</button>
+      <button class="btn" id="btn-download">Скачать HTML</button>
+      <button class="btn" id="btn-print">Печать</button>
+      <button class="btn primary" id="btn-pdf">Скачать PDF</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- ========= FORM ========= -->
+    <aside class="form-pane">
+      <div class="hint">
+        Заполняй поля — preview справа обновляется на лету. Чтобы получить PDF — нажми «Печать в PDF» и выбери в диалоге «Сохранить как PDF».
+      </div>
+
+      <h2>Шапка КП</h2>
+      <div class="field-row three">
+        <div class="field">
+          <label>Номер КП</label>
+          <input type="text" id="f-kpNumber" />
+        </div>
+        <div class="field">
+          <label>Дата</label>
+          <input type="date" id="f-date" />
+        </div>
+        <div class="field">
+          <label>Город</label>
+          <input type="text" id="f-city" />
+        </div>
+      </div>
+
+      <h2>Партнёр</h2>
+      <div class="field">
+        <label>Название</label>
+        <input type="text" id="f-partner" placeholder="Название заведения" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Имя ЛПР</label>
+          <input type="text" id="f-lpr" placeholder="Имя" />
+        </div>
+        <div class="field">
+          <label>Должность</label>
+          <input type="text" id="f-lprTitle" placeholder="директор / собственник" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Количество точек</label>
+        <input type="number" id="f-points" min="1" />
+      </div>
+
+      <h2>Бизнес-параметры</h2>
+      <div class="field">
+        <label>Оборот доставки в месяц (₸)</label>
+        <input type="number" id="f-turnover" min="0" step="100000" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Средний чек (₸)</label>
+          <input type="number" id="f-avgCheck" min="0" />
+        </div>
+        <div class="field">
+          <label>Комиссия агрегатора (%)</label>
+          <input type="number" id="f-commission" min="0" max="100" step="1" />
+        </div>
+      </div>
+
+      <h2>Продукты пакета</h2>
+
+      <label class="product" data-key="delivery">
+        <input type="checkbox" data-product="delivery" />
+        <span>
+          <div class="p-name">SR Delivery</div>
+          <div class="p-desc">Свой канал доставки без комиссии агрегаторам</div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="delivery" min="0" step="5000" />
+          <input type="number" data-discount="delivery" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <label class="product" data-key="autoPay">
+        <input type="checkbox" data-product="autoPay" />
+        <span>
+          <div class="p-name">Авто-подтягивание счёта</div>
+          <div class="p-desc">QR-оплата счёта в зале · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="autoPay" min="0" step="5000" />
+          <input type="number" data-discount="autoPay" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <label class="product" data-key="noWaiter">
+        <input type="checkbox" data-product="noWaiter" />
+        <span>
+          <div class="p-name">Без Официанта</div>
+          <div class="p-desc">QR-меню в зале · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="noWaiter" min="0" step="5000" />
+          <input type="number" data-discount="noWaiter" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <label class="product" data-key="loyalty">
+        <input type="checkbox" data-product="loyalty" />
+        <span>
+          <div class="p-name">Программа Лояльности</div>
+          <div class="p-desc">Возврат неактивной базы — разовых и спящих гостей</div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="loyalty" min="0" step="5000" />
+          <input type="number" data-discount="loyalty" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <label class="product" data-key="noCashier">
+        <input type="checkbox" data-product="noCashier" />
+        <span>
+          <div class="p-name">Без Кассира</div>
+          <div class="p-desc">Заказ заранее по QR / 2ГИС / Instagram · <b style="color:var(--ui-accent)">бесплатно при Freedom</b></div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="noCashier" min="0" step="5000" />
+          <input type="number" data-discount="noCashier" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <label class="product" data-key="kiosks">
+        <input type="checkbox" data-product="kiosks" />
+        <span>
+          <div class="p-name">Киоски самообслуживания</div>
+          <div class="p-desc">Самозаказ и оплата на экране</div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="kiosks" min="0" step="5000" />
+          <input type="number" data-discount="kiosks" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <label class="product" data-key="brandedApp">
+        <input type="checkbox" data-product="brandedApp" />
+        <span>
+          <div class="p-name">Брендированное приложение</div>
+          <div class="p-desc">Заказ, оплата и лояльность в одном приложении с вашим логотипом · <b style="color:var(--ui-accent)">цена на всю сеть</b></div>
+        </span>
+        <div class="prices">
+          <input type="number" data-price="brandedApp" min="0" step="5000" />
+          <input type="number" data-discount="brandedApp" min="0" step="1000" placeholder="скидка" />
+        </div>
+      </label>
+
+      <h2>Freedom-счёт</h2>
+      <div class="hint">
+        Если партнёр открывает Freedom-счёт: подключение 0 ₸, а Авто-подтягивание, Без Официанта и Без Кассира включаются бесплатно. Остальные продукты (SR Delivery, Лояльность, Киоски, Брендированное приложение) — на платной основе (можно поставить скидку рядом с ценой).
+      </div>
+      <label class="product" data-key="freedomAccount">
+        <input type="checkbox" id="f-freedom" />
+        <span>
+          <div class="p-name">Партнёр открывает Freedom-счёт</div>
+          <div class="p-desc">Подключение 0 ₸ + 3 продукта бесплатно + до 6% кешбэка гостям + аналитика по гостям</div>
+        </span>
+        <span style="text-align:right;color:var(--ui-accent);font-weight:700;font-size:12px">бонусы</span>
+      </label>
+
+      <h2>Прочее</h2>
+      <div class="field">
+        <label>Подключение на точку, разово (₸)</label>
+        <input type="number" id="f-setup" min="0" step="5000" />
+        <div class="hint" style="margin-top:6px">При Freedom-счёте — в КП будет 0 ₸.</div>
+      </div>
+      <div class="field">
+        <label>Эквайринг (все карты), %</label>
+        <input type="number" id="f-acquiring" min="0" step="0.1" />
+      </div>
+
+      <h2>Менеджер</h2>
+      <div class="hint">Эти поля видит партнёр в КП. Заполни один раз — настройки сохранятся в браузере.</div>
+      <div class="field">
+        <label>ФИО менеджера</label>
+        <input type="text" id="f-manager" placeholder="Фамилия Имя Отчество" />
+      </div>
+      <div class="field-row two">
+        <div class="field">
+          <label>Инициалы для аватара</label>
+          <input type="text" id="f-initials" maxlength="2" placeholder="авто" />
+        </div>
+        <div class="field">
+          <label>Телефон</label>
+          <input type="tel" id="f-phone" placeholder="+7 ___ ___ __ __" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- ========= PREVIEW ========= -->
+    <main class="preview-pane">
+      <div class="preview-shell" id="preview">
+        <div class="empty-state">Заполни форму слева — здесь появится КП.</div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<div class="pdf-overlay" id="pdf-overlay">
+  <div class="box">
+    <div class="spin"></div>
+    <div class="txt" id="pdf-status">Готовим PDF…</div>
+    <div class="sub">Это займёт несколько секунд</div>
+  </div>
+</div>
+
+<div id="pdf-stage"></div>
+
+<script>
+const FREEDOM_LOGO = "data:image/png;base64,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";
+
+/* ========================================================================
+   Генератор КП — single-file vanilla JS app
+   ======================================================================== */
+
+const STORAGE_KEY = "kp-generator-state-v2";
+
+const DEFAULTS = {
+  meta: {
+    kpNumber: "КП-SR-2026-Demo",
+    date: new Date().toISOString().slice(0, 10),
+    city: "Алматы"
+  },
+  partner: {
+    name: "Демо-партнёр",
+    lpr: "",
+    lprTitle: "",
+    points: 1
+  },
+  business: {
+    turnover: 5000000,
+    avgCheck: 5000,
+    commission: 30
+  },
+  products: {
+    delivery:   { enabled: true,  price: 60000,  discount: 0 },
+    autoPay:    { enabled: false, price: 30000,  discount: 0 },
+    noWaiter:   { enabled: false, price: 60000,  discount: 0 },
+    loyalty:    { enabled: false, price: 60000,  discount: 0 },
+    noCashier:  { enabled: false, price: 60000,  discount: 0 },
+    kiosks:     { enabled: false, price: 60000,  discount: 0 },
+    brandedApp: { enabled: false, price: 420000, discount: 0 }
+  },
+  setup: 50000,
+  acquiring: { rate: 2 },
+  freedomAccount: { enabled: true },
+  manager: {
+    name: "",
+    initials: "",
+    phone: ""
+  }
+};
+
+/* ---------- Product copy ---------- */
+const PRODUCT_LABELS = {
+  delivery: "SR Delivery",
+  autoPay: "Авто-подтягивание",
+  noWaiter: "Без Официанта",
+  loyalty: "Программа Лояльности",
+  noCashier: "Без Кассира",
+  kiosks: "Киоски самообслуживания",
+  brandedApp: "Брендированное приложение"
+};
+
+// Продукты с оплатой «на всю сеть» (flat). Остальные — за локацию.
+const NETWORK_WIDE_PRODUCTS = new Set(["loyalty", "brandedApp"]);
+function isPerLocation(key) { return !NETWORK_WIDE_PRODUCTS.has(key); }
+
+// Бесплатные продукты при открытии Freedom-счёта
+const FREEDOM_FREE_PRODUCTS = ["autoPay", "noWaiter", "noCashier"];
+
+const PRODUCT_BULLETS = {
+  autoPay: {
+    title: "Эффект «Авто-подтягивание» (зал)",
+    intro: "Гость в зале сканирует QR на столе — его открытый счёт автоматически подтягивается из кассы на смартфон. Оплачивает картой, Apple Pay или Kaspi прямо в браузере, без приложения. Официант не нужен для счёта и расчёта.",
+    bullets: [
+      "<b>Оборот столов ↑ 10–15 %</b> — гость не ждёт счёт, сдачу и терминал, столы освобождаются быстрее",
+      "<b>Официант освобождён от расчётов</b> — больше времени на сервис и допродажи",
+      "<b>Никаких споров</b> — позиции и сумма видны на экране до оплаты"
+    ]
+  },
+  noWaiter: {
+    title: "Эффект «Без Официанта»",
+    intro: "Гость сканирует QR на столе, выбирает блюда из электронного меню и оплачивает со смартфона. Официант не нужен для приёма заказа и расчёта.",
+    bullets: [
+      "<b>+5–10 %</b> к среднему чеку — видны все позиции, легче добавить десерты и напитки",
+      "<b>+30–40 %</b> к скорости обслуживания на пиках — нет ожидания официанта",
+      "<b>−1 ставка</b> официанта на смене — экономия на ФОТ",
+      "<b>Меньше ошибок</b> в заказах — гость выбирает сам, без устного пересказа"
+    ]
+  },
+  loyalty: {
+    title: "Эффект «Программы Лояльности»",
+    intro: "Возвращает неактивную базу: разовых гостей и тех, кто перестал ходить. Триггерные рассылки и бонусы под сегменты — без посредников.",
+    bullets: [
+      "<b>Возврат разовых гостей</b> — те, кто пришёл один раз и забыл, получают триггерное напоминание",
+      "<b>Реанимация спящих</b> — гости, переставшие ходить 30+ дней, возвращаются по push-рассылке",
+      "<b>База у тебя</b> — телефоны, поведение покупок, средний чек, любимые блюда — не у Glovo",
+      "<b>Уровни и купоны</b> — настраиваешь правила бонусов и кешбэка под свою экономику"
+    ]
+  },
+  noCashier: {
+    title: "Эффект «Без Кассира»",
+    intro: "Гость заказывает заранее — через QR на столе или ссылку из 2ГИС / Instagram. Заказ автоматически попадает в кассу со звуковым уведомлением, кассир не пропускает его.",
+    bullets: [
+      "<b>Без очереди</b> — гость делает заказ со смартфона здесь и сейчас, не ожидая очереди, которая накопилась впереди",
+      "<b>Заказы из 2ГИС и Instagram</b> — переход по ссылке прямо из соцсети или карточки заведения",
+      "<b>Звуковое уведомление</b> в кассе на каждый новый заказ — ни один не теряется",
+      "<b>Кухня видит сразу</b> — без бега к станции и переписи на бумаге"
+    ]
+  },
+  kiosks: {
+    title: "Эффект «Киоски самообслуживания»",
+    intro: "Гость подходит к киоску, сам выбирает блюда на экране и оплачивает картой. Заказ мгновенно уходит на кухню — без очереди к кассе и без ошибок при пересказе.",
+    bullets: [
+      "<b>Самозаказ</b> — гость выбирает и подтверждает заказ сам, без ожидания кассира",
+      "<b>Оплата на киоске</b> — по QR на экране или через терминал рядом",
+      "<b>Интеграция с кухней</b> — заказ уходит на производство мгновенно, без пересказа",
+      "<b>Изменение меню</b> — актуальные позиции и цены обновляются на всех киосках из одной панели",
+      "<b>Голосовой заказ</b> — в тестировании"
+    ]
+  },
+  brandedApp: {
+    title: "Эффект «Брендированное приложение»",
+    intro: "Приложение с логотипом и цветами вашего бренда — гость устанавливает один раз и делает заказы, оплачивает и получает бонусы в едином фирменном стиле. Заказ, лояльность и история — в одном месте под вашим брендом.",
+    bullets: [
+      "<b>Единый интерфейс</b> — заказ, оплата, лояльность и история в одном приложении, без переключений между сайтом и мессенджерами",
+      "<b>Push-уведомления</b> — прямой канал коммуникации с гостем, без комиссий агрегаторов и посредников",
+      "<b>Программа лояльности встроена</b> — карточка гостя, бонусы и статусы всегда под рукой",
+      "<b>Бренд на экране гостя</b> — иконка приложения работает как постоянное напоминание о заведении"
+    ]
+  }
+};
+
+/* ---------- State ---------- */
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(DEFAULTS);
+    return mergeDeep(structuredClone(DEFAULTS), JSON.parse(raw));
+  } catch (e) {
+    return structuredClone(DEFAULTS);
+  }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function mergeDeep(a, b) {
+  for (const k in b) {
+    if (b[k] && typeof b[k] === "object" && !Array.isArray(b[k])) {
+      a[k] = mergeDeep(a[k] || {}, b[k]);
+    } else {
+      a[k] = b[k];
+    }
+  }
+  return a;
+}
+
+/* ---------- Helpers ---------- */
+function fmtMoney(n) {
+  if (!isFinite(n)) return "0 ₸";
+  return n.toLocaleString("ru-RU").replace(/,/g, " ") + " ₸";
+}
+function fmtMln(n) {
+  const m = n / 1_000_000;
+  if (Math.abs(m) >= 10) return m.toFixed(0) + " млн ₸";
+  return m.toFixed(2).replace(".", ",") + " млн ₸";
+}
+function fmtNum(n) {
+  return Math.round(n).toLocaleString("ru-RU").replace(/,/g, " ");
+}
+// Правильное склонение "точка / точки / точек"
+function pluralPoints(n) {
+  n = Math.abs(n);
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return "точек";
+  if (mod10 === 1) return "точка";
+  if (mod10 >= 2 && mod10 <= 4) return "точки";
+  return "точек";
+}
+function fmtSigned(n) {
+  return (n >= 0 ? "+" : "−") + fmtMoney(Math.abs(n));
+}
+function fmtSignedMln(n) {
+  return (n >= 0 ? "+" : "−") + fmtMln(Math.abs(n));
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function ddmmyyyy(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
+
+/* ---------- Form ↔ state binding ---------- */
+function bindForm() {
+  // simple fields
+  const fields = {
+    "f-kpNumber":   ["meta", "kpNumber"],
+    "f-date":       ["meta", "date"],
+    "f-city":       ["meta", "city"],
+    "f-partner":    ["partner", "name"],
+    "f-lpr":        ["partner", "lpr"],
+    "f-lprTitle":   ["partner", "lprTitle"],
+    "f-points":     ["partner", "points"],
+    "f-turnover":   ["business", "turnover"],
+    "f-avgCheck":   ["business", "avgCheck"],
+    "f-commission": ["business", "commission"],
+    "f-setup":      ["setup"],
+    "f-acquiring":  ["acquiring", "rate"],
+    "f-manager":    ["manager", "name"],
+    "f-initials":   ["manager", "initials"],
+    "f-phone":      ["manager", "phone"]
+  };
+
+  for (const [id, path] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+
+    // initial value
+    setFromPath(el, path);
+
+    el.addEventListener("input", () => {
+      const v = el.type === "number" ? Number(el.value) : el.value;
+      setPath(state, path, v);
+      saveState();
+      render();
+    });
+  }
+
+  // products
+  document.querySelectorAll(".product").forEach(row => {
+    const key = row.dataset.key;
+    if (key === "freedomAccount") return; // handled separately below
+    const cb = row.querySelector("input[type=checkbox]");
+    const priceInput = row.querySelector(`input[data-price="${key}"]`);
+    const discInput  = row.querySelector(`input[data-discount="${key}"]`);
+    cb.checked = state.products[key].enabled;
+    priceInput.value = state.products[key].price;
+    if (discInput) discInput.value = state.products[key].discount || "";
+    row.classList.toggle("on", cb.checked);
+
+    cb.addEventListener("change", () => {
+      state.products[key].enabled = cb.checked;
+      row.classList.toggle("on", cb.checked);
+      saveState();
+      render();
+    });
+    priceInput.addEventListener("input", () => {
+      state.products[key].price = Number(priceInput.value || 0);
+      saveState();
+      render();
+    });
+    if (discInput) {
+      discInput.addEventListener("input", () => {
+        state.products[key].discount = Number(discInput.value || 0);
+        saveState();
+        render();
+      });
+    }
+  });
+
+  // freedom account toggle
+  const freedomRow = document.querySelector('.product[data-key="freedomAccount"]');
+  const freedomCb = document.getElementById("f-freedom");
+  if (freedomCb && freedomRow) {
+    freedomCb.checked = state.freedomAccount.enabled;
+    freedomRow.classList.toggle("on", freedomCb.checked);
+    freedomCb.addEventListener("change", () => {
+      state.freedomAccount.enabled = freedomCb.checked;
+      freedomRow.classList.toggle("on", freedomCb.checked);
+      saveState();
+      render();
+    });
+  }
+
+  // toolbar
+  document.getElementById("btn-print").addEventListener("click", () => window.print());
+  document.getElementById("btn-pdf").addEventListener("click", downloadPdf);
+  document.getElementById("btn-download").addEventListener("click", downloadHtml);
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    if (!confirm("Сбросить все поля к значениям по умолчанию?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state = structuredClone(DEFAULTS);
+    initFormValues();
+    render();
+  });
+}
+
+function setPath(obj, path, value) {
+  let o = obj;
+  for (let i = 0; i < path.length - 1; i++) o = o[path[i]];
+  o[path[path.length - 1]] = value;
+}
+function getPath(obj, path) {
+  let o = obj;
+  for (const k of path) o = o ? o[k] : undefined;
+  return o;
+}
+function setFromPath(el, path) {
+  const v = getPath(state, path);
+  el.value = v ?? "";
+}
+function initFormValues() {
+  // re-populate all inputs from state
+  document.querySelectorAll(".product").forEach(row => {
+    const key = row.dataset.key;
+    if (key === "freedomAccount") return;
+    row.querySelector("input[type=checkbox]").checked = state.products[key].enabled;
+    row.querySelector(`input[data-price="${key}"]`).value = state.products[key].price;
+    const discInput = row.querySelector(`input[data-discount="${key}"]`);
+    if (discInput) discInput.value = state.products[key].discount || "";
+    row.classList.toggle("on", state.products[key].enabled);
+  });
+  const freedomRow = document.querySelector('.product[data-key="freedomAccount"]');
+  const freedomCb = document.getElementById("f-freedom");
+  if (freedomCb && freedomRow) {
+    freedomCb.checked = state.freedomAccount.enabled;
+    freedomRow.classList.toggle("on", freedomCb.checked);
+  }
+  const map = {
+    "f-kpNumber":   state.meta.kpNumber,
+    "f-date":       state.meta.date,
+    "f-city":       state.meta.city,
+    "f-partner":    state.partner.name,
+    "f-lpr":        state.partner.lpr,
+    "f-lprTitle":   state.partner.lprTitle,
+    "f-points":     state.partner.points,
+    "f-turnover":   state.business.turnover,
+    "f-avgCheck":   state.business.avgCheck,
+    "f-commission": state.business.commission,
+    "f-setup":      state.setup,
+    "f-acquiring":  state.acquiring?.rate ?? 2,
+    "f-manager":    state.manager.name,
+    "f-initials":   state.manager.initials,
+    "f-phone":      state.manager.phone
+  };
+  for (const [id, v] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) el.value = v ?? "";
+  }
+}
+
+/* ---------- Calculations ---------- */
+function isFreedomFree(key) {
+  return state.freedomAccount?.enabled && FREEDOM_FREE_PRODUCTS.includes(key);
+}
+function effectivePrice(p, key) {
+  if (isFreedomFree(key)) return 0;
+  const base = p?.price ?? 0;
+  const disc = p?.discount ?? 0;
+  return Math.max(0, base - disc);
+}
+
+
+// Слайд-эффекты по каждому продукту (для preview в стиле Freedom-презентации)
+const PRODUCT_EFFECTS = {
+  delivery: {
+    label: "SR DELIVERY",
+    title: "Свой канал доставки без комиссии агрегаторам",
+    intro: "Приём заказов и оплата — на вашем канале. Комиссия 20-30%, которую забирал агрегатор, остаётся в заведении. База гостей — ваша.",
+    cards: [
+      { h: "Экономия на комиссии", t: "20-30% с оборота, которые уходили Yandex, Wolt и Glovo, остаются у вас" },
+      { h: "Своя база гостей", t: "Каждый заказ создаёт карточку с историей, чеком и предпочтениями" },
+      { h: "Прямой контакт", t: "WhatsApp, push, отзывы через ваш канал, а не через платформу" },
+      { h: "Контроль качества", t: "Свои курьеры или интеграция с партнёрами, ваши правила" }
+    ]
+  },
+  autoPay: {
+    label: "АВТО-ПОДТЯГИВАНИЕ",
+    title: "Заказ и оплата не вставая со стола",
+    intro: "Гость сканирует QR на столе — счёт открывается на смартфоне, оплата в один клик. Официант не нужен для расчёта.",
+    cards: [
+      { h: "Разгрузка касс", t: "Гость не подходит к кассе, чтобы оплатить счёт" },
+      { h: "Быстрый оборот столов", t: "Оплата занимает 30 секунд вместо 5 минут ожидания" },
+      { h: "Апселл при оплате", t: "Экран может предложить десерт или напиток перед оплатой" },
+      { h: "Оцифровка гостя", t: "Каждый платёж создаёт карточку и пополняет базу заведения" }
+    ]
+  },
+  noWaiter: {
+    label: "БЕЗ ОФИЦИАНТА",
+    title: "Гость сам заказывает и платит по QR",
+    intro: "QR на столе → меню на смартфоне → заказ прямо в кухню. Официант не нужен ни для меню, ни для заказа, ни для оплаты.",
+    cards: [
+      { h: "Меньше нагрузки", t: "Официанты не тратят время на приём заказов и расчёты" },
+      { h: "Заказ сразу в кухню", t: "Без пересказа официантом — без ошибок в передаче" },
+      { h: "Апселл через меню", t: "Рекомендации и допродажи встроены в интерфейс" },
+      { h: "Работает в час-пик", t: "Скорость обслуживания не падает при пиковой загрузке" }
+    ]
+  },
+  loyalty: {
+    label: "ЛОЯЛЬНОСТЬ",
+    title: "Возврат неактивной базы гостей",
+    intro: "Программа лояльности с сегментами, статусами и триггерными сценариями. Возвращаются те, кто перестал ходить.",
+    cards: [
+      { h: "Триггерные механики", t: "Автосценарии для спящих гостей и разовых визитов" },
+      { h: "Уровни и статусы", t: "Бонусы под сегменты и экономику заведения" },
+      { h: "Кешбэк без бюджета", t: "Часть механик финансируется из ресурсов Freedom" },
+      { h: "Прямой канал", t: "Push и коммуникация с гостем без комиссий агрегаторов" }
+    ]
+  },
+  noCashier: {
+    label: "БЕЗ КАССИРА",
+    title: "Часть заказов уходит из очереди",
+    intro: "Гость заказывает заранее через QR со стола, ссылку из 2ГИС или Instagram. Заказ падает в кассу со звуковым уведомлением.",
+    cards: [
+      { h: "Без очереди", t: "Гость делает заказ со смартфона, не ожидая тех, кто впереди" },
+      { h: "Заказы из соцсетей", t: "Прямой переход по ссылке из карточки в 2ГИС или Instagram" },
+      { h: "Звуковое уведомление", t: "Кассир получает сигнал на каждый заказ — ни один не теряется" },
+      { h: "Кухня видит сразу", t: "Заказ падает в производство без переписей на бумаге" }
+    ]
+  },
+  kiosks: {
+    label: "КИОСКИ САМООБСЛУЖИВАНИЯ",
+    title: "Самозаказ и оплата на экране",
+    intro: "Гость сам выбирает блюда, оплачивает и забирает заказ. Кассир освобождается для решения нестандартных ситуаций.",
+    cards: [
+      { h: "Самозаказ", t: "Гость выбирает и подтверждает заказ без ожидания кассира" },
+      { h: "Оплата на месте", t: "По QR на экране или через терминал рядом с киоском" },
+      { h: "Мгновенно в кухню", t: "Заказ уходит на производство без пересказа кассиром" },
+      { h: "Единая панель", t: "Обновление позиций и цен на всех киосках сразу" }
+    ]
+  },
+  brandedApp: {
+    label: "БРЕНДИРОВАННОЕ ПРИЛОЖЕНИЕ",
+    title: "Заказ, оплата и лояльность под вашим брендом",
+    intro: "Одно приложение под вашим логотипом с меню, заказом, оплатой и историей визитов. Гость устанавливает один раз и возвращается.",
+    cards: [
+      { h: "Единый интерфейс", t: "Заказ, оплата, лояльность и история — в одном месте" },
+      { h: "Push-канал", t: "Прямая коммуникация с гостем без комиссий агрегаторов" },
+      { h: "Лояльность встроена", t: "Карточка, бонусы и статусы всегда под рукой у гостя" },
+      { h: "Бренд на экране", t: "Иконка приложения работает как постоянное напоминание" }
+    ]
+  }
+};
+
+// Иконки-визуалы для каждого продукта (в стиле Freedom-презентации)
+const PRODUCT_ICONS = {
+  delivery: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 40 12 L 66 24 L 66 50 L 40 62 L 14 50 L 14 24 Z"/>
+      <path d="M 14 24 L 40 36 L 66 24"/>
+      <path d="M 40 36 L 40 62"/>
+      <path d="M 27 18 L 53 30" opacity="0.5"/>
+    </svg>`,
+  autoPay: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="14" y="22" width="52" height="34" rx="4"/>
+      <line x1="14" y1="32" x2="66" y2="32" stroke-width="4"/>
+      <line x1="22" y1="44" x2="34" y2="44"/>
+      <circle cx="54" cy="46" r="4" fill="currentColor" stroke="none"/>
+      <circle cx="60" cy="46" r="4" fill="currentColor" fill-opacity="0.3" stroke="none"/>
+    </svg>`,
+  noWaiter: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="10" y="10" width="22" height="22" rx="2"/>
+      <rect x="17" y="17" width="8" height="8" fill="currentColor" stroke="none"/>
+      <rect x="48" y="10" width="22" height="22" rx="2"/>
+      <rect x="55" y="17" width="8" height="8" fill="currentColor" stroke="none"/>
+      <rect x="10" y="48" width="22" height="22" rx="2"/>
+      <rect x="17" y="55" width="8" height="8" fill="currentColor" stroke="none"/>
+      <path d="M 48 48 L 55 48 L 55 55 M 63 48 L 70 48 M 48 63 L 55 63 M 63 55 L 63 70 M 70 63 L 70 70"/>
+    </svg>`,
+  loyalty: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 40 66 C 40 66 12 50 12 30 C 12 20 20 12 30 12 C 35 12 40 17 40 22 C 40 17 45 12 50 12 C 60 12 68 20 68 30 C 68 50 40 66 40 66 Z" fill="currentColor" fill-opacity="0.15"/>
+      <circle cx="30" cy="32" r="3" fill="currentColor" stroke="none"/>
+      <circle cx="50" cy="42" r="3" fill="currentColor" stroke="none"/>
+      <line x1="52" y1="30" x2="28" y2="44" stroke-width="3"/>
+    </svg>`,
+  noCashier: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="40" cy="42" r="24"/>
+      <path d="M 40 26 L 40 42 L 52 50"/>
+      <path d="M 26 12 L 34 12 M 46 12 L 54 12"/>
+      <circle cx="40" cy="42" r="2" fill="currentColor" stroke="none"/>
+    </svg>`,
+  kiosks: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="16" y="10" width="48" height="52" rx="3"/>
+      <line x1="16" y1="52" x2="64" y2="52"/>
+      <line x1="30" y1="68" x2="50" y2="68"/>
+      <line x1="40" y1="62" x2="40" y2="68"/>
+      <rect x="26" y="20" width="12" height="8" rx="1" fill="currentColor" fill-opacity="0.4" stroke="none"/>
+      <rect x="42" y="20" width="12" height="8" rx="1" fill="currentColor" fill-opacity="0.4" stroke="none"/>
+      <rect x="26" y="34" width="28" height="8" rx="1" fill="currentColor" fill-opacity="0.4" stroke="none"/>
+    </svg>`,
+  brandedApp: `
+    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="22" y="8" width="36" height="60" rx="5"/>
+      <line x1="34" y1="62" x2="46" y2="62"/>
+      <path d="M 40 24 L 43 32 L 51 32 L 45 37 L 47 45 L 40 40 L 33 45 L 35 37 L 29 32 L 37 32 Z" fill="currentColor" stroke="none"/>
+    </svg>`
+};
+
+function compute() {
+  const s = state;
+  const points = Math.max(1, Number(s.partner?.points) || 1);
+  const orders = s.business.avgCheck > 0 ? Math.round(s.business.turnover / s.business.avgCheck) : 0;
+  const lossPerOrder = s.business.avgCheck * (s.business.commission / 100);
+  const aggregatorLoss = orders * lossPerOrder;
+
+  // Множитель: per-location продукты × points, сетевые (loyalty, brandedApp) × 1
+  const productMult = (k) => isPerLocation(k) ? points : 1;
+
+  const deliveryAbon = s.products.delivery.enabled
+    ? effectivePrice(s.products.delivery, "delivery") * productMult("delivery")
+    : 0;
+  const monthlyAbon = Object.entries(s.products)
+    .filter(([_, p]) => p.enabled)
+    .reduce((sum, [k, p]) => sum + effectivePrice(p, k) * productMult(k), 0);
+
+  const scenarioPcts = [0.30, 0.50, 0.70, 1.00];
+  const scenarios = scenarioPcts.map(p => {
+    const ordersOnOwn = Math.round(orders * p);
+    const savings = ordersOnOwn * lossPerOrder;
+    const net = savings - deliveryAbon;
+    return {
+      pct: Math.round(p * 100),
+      orders: ordersOnOwn,
+      savings,
+      net,
+      netYear: net * 12
+    };
+  });
+
+  return {
+    orders,
+    lossPerOrder,
+    aggregatorLoss,
+    deliveryAbon,
+    monthlyAbon,
+    scenarios,
+    full: scenarios[scenarios.length - 1],
+    points,
+    productMult
+  };
+}
+
+/* ---------- Contact block ---------- */
+function renderContact() {
+  const name = state.manager.name?.trim() || "";
+  const phone = state.manager.phone?.trim() || "";
+  let initials = state.manager.initials?.trim();
+  if (!initials && name) {
+    initials = name.split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase();
+  }
+  if (!initials) initials = "СР";
+
+  const nameLine = name
+    ? escapeHtml(name)
+    : `<span style="color:var(--f-text-dim);font-weight:400">Заполни «ФИО менеджера» в форме слева</span>`;
+  const phoneLine = phone
+    ? escapeHtml(phone)
+    : `<span style="color:var(--f-text-dim);font-weight:400">Заполни «Телефон» в форме слева</span>`;
+
+  return `
+    <div class="contact-block">
+      <div class="av">${escapeHtml(initials)}</div>
+      <div>
+        <div class="role">Ваш персональный менеджер</div>
+        <div class="name">${nameLine}</div>
+        <div class="phone">${phoneLine}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- Renderer (Freedom pitch style) ---------- */
+function render() {
+  const c = compute();
+  const enabled = Object.fromEntries(
+    Object.entries(state.products).map(([k, v]) => [k, v.enabled])
+  );
+  const enabledKeys = Object.keys(state.products).filter(k => enabled[k]);
+  const isFreedom = !!state.freedomAccount?.enabled;
+  const hasDelivery = enabled.delivery;
+  const points = c.points;
+
+  const partnerName = (state.partner.name || "PARTNER").trim();
+  const kpNum = state.kpNumber || "";
+  const kpDate = ddmmyyyy(state.date) || "";
+  const kpCity = state.city || "";
+  const lpr = state.partner.lpr || "";
+  const lprTitle = state.partner.lprTitle || "";
+
+  /* ==================== 1. COVER ==================== */
+  const coverPartner = escapeHtml(partnerName.toUpperCase());
+  const enabledLabels = enabledKeys.map(k => PRODUCT_LABELS[k]).join(" · ") || "Freedom Restaurants";
+  const cover = `
+    <div class="kp-topbar">
+      <div class="kp-topbar-left"><span class="dot-y"></span><span class="label">Предложение о стратегическом партнёрстве</span></div>
+      <div class="kp-topbar-right"><img class="f-logo" src="${FREEDOM_LOGO}" alt="Freedom" /><span class="f-word">FREEDOM</span></div>
+    </div>
+    <div class="kp-cover">
+      <div class="cover-partner">${coverPartner}</div>
+      <div class="cover-sub">${escapeHtml(enabledLabels)}</div>
+      <div class="cover-line"></div>
+      <div class="cover-tag">Больше заказов. Меньше нагрузки на кассы. Больше поводов возвращаться.</div>
+      <div class="cover-meta">
+        ${kpNum ? `<div class="m"><div class="k">КП №</div><div class="v">${escapeHtml(kpNum)}</div></div>` : ""}
+        ${kpDate ? `<div class="m"><div class="k">Дата</div><div class="v">${escapeHtml(kpDate)}</div></div>` : ""}
+        ${kpCity ? `<div class="m"><div class="k">Город</div><div class="v">${escapeHtml(kpCity)}</div></div>` : ""}
+        ${lpr ? `<div class="m"><div class="k">Кому</div><div class="v">${escapeHtml(lpr)}${lprTitle ? ", " + escapeHtml(lprTitle) : ""}</div></div>` : ""}
+        <div class="m"><div class="k">Точек</div><div class="v">${points}</div></div>
+      </div>
+    </div>
+  `;
+
+  /* ==================== 2. EXECUTIVE SUMMARY ==================== */
+  const nCards = enabledKeys.length;
+  const gridClass = nCards <= 1 ? "n2" : nCards <= 4 ? `n${nCards}` : nCards === 5 ? "n5" : nCards === 6 ? "n6" : "n7";
+  const numCards = enabledKeys.map((k, i) => {
+    const label = PRODUCT_LABELS[k] || k;
+    const short = ({
+      delivery:   "Свой канал доставки без комиссии агрегаторам",
+      autoPay:    "Оплата на смартфоне гостя, не вставая со стола",
+      noWaiter:   "Заказ и оплата по QR со стола, без официанта",
+      loyalty:    "Возврат неактивной базы и повторные визиты",
+      noCashier:  "Заказы из зала, 2ГИС и Instagram — мимо очереди",
+      kiosks:     "Самозаказ и оплата на киоске без кассира",
+      brandedApp: "Приложение вашего бренда с меню и лояльностью"
+    })[k] || "";
+    return `<div class="num-card">
+      <div class="num">${String(i + 1).padStart(2, "0")}</div>
+      <div class="h">${escapeHtml(label)}</div>
+      <div class="t">${escapeHtml(short)}</div>
+    </div>`;
+  }).join("");
+
+  const execSummary = enabledKeys.length ? `
+    <div class="sec-block">
+      <div class="sec-label">Executive Summary</div>
+      <div class="sec-title">Одна интеграция — несколько источников дополнительной ценности</div>
+      <div class="num-cards ${gridClass}">${numCards}</div>
+      <div class="sec-outro">
+        <span class="accent">Freedom Restaurants</span> повышает операционную эффективность заведения и позитивно влияет на выручку и клиентский опыт.
+      </div>
+    </div>
+  ` : "";
+
+  /* ==================== 3. SLIDES per product ==================== */
+  const productSlides = enabledKeys.map(k => {
+    const fx = PRODUCT_EFFECTS[k];
+    if (!fx) return "";
+    const cardCount = fx.cards.length;
+    const cardGrid = cardCount === 2 ? "n2" : cardCount === 3 ? "n3" : "n4";
+    const icon = PRODUCT_ICONS[k] || "";
+    return `
+      <div class="sec-block">
+        <div class="product-hero">
+          <div class="product-hero-content">
+            <div class="sec-label">${escapeHtml(fx.label)}</div>
+            <div class="sec-title">${escapeHtml(fx.title)}</div>
+            <div class="sec-lead">${escapeHtml(fx.intro)}</div>
+          </div>
+          <div class="product-hero-icon">${icon}</div>
+        </div>
+        <div class="fx-cards ${cardGrid}">
+          ${fx.cards.map(card => `
+            <div class="fx-card">
+              <div class="fx-dot"></div>
+              <div class="h">${escapeHtml(card.h)}</div>
+              <div class="t">${escapeHtml(card.t)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  /* ==================== 4. Delivery economics (if delivery) ==================== */
+  let deliveryEcon = "";
+  if (hasDelivery && c.orders > 0) {
+    const yearlySavings = c.full.net * 12;
+    const yearlyAggregator = c.aggregatorLoss * 12;
+    deliveryEcon = `
+      <div class="sec-block">
+        <div class="sec-label">Экономика доставки</div>
+        <div class="sec-title">Возвращаем себе то, что уходило агрегаторам</div>
+        <div class="sec-lead">База: оборот ${fmtMoney(state.business.turnover)}/мес ≈ ${fmtNum(c.orders)} заказов × ${fmtMoney(state.business.avgCheck)}. Комиссия агрегаторов ${state.business.commission}%.</div>
+
+        <div class="now-after">
+          <div class="side now">
+            <div class="side-label">Сейчас — с агрегаторами</div>
+            <div class="side-num">−${fmtMln(yearlyAggregator)}</div>
+            <div class="side-cap">уходит агрегаторам в год</div>
+            <div class="side-note">Комиссия ${state.business.commission}% × ${fmtNum(c.orders)} заказов/мес × 12 месяцев</div>
+          </div>
+          <div class="side after">
+            <div class="side-label">С SR Delivery — базовый сценарий</div>
+            <div class="side-num">+${fmtMln(yearlySavings)}</div>
+            <div class="side-cap">чистого эффекта в год</div>
+            <div class="side-note">50% заказов уходит на свой канал, за вычетом абонплаты ${fmtMoney(c.deliveryAbon)}/мес</div>
+          </div>
+        </div>
+
+        <table class="tbl">
+          <thead><tr>
+            <th>Сценарий перевода заказов</th>
+            <th class="num">Заказов на свой канал</th>
+            <th class="num">Чистый эффект / мес</th>
+            <th class="num">Чистый эффект / год</th>
+          </tr></thead>
+          <tbody>
+            ${c.scenarios.map((s, i) => `
+              <tr${i === 1 ? ' class="row-hi"' : ""}>
+                <td>${i === 0 ? "Консервативный" : i === 1 ? "Базовый — рекомендуем" : i === 2 ? "Амбициозный" : "Полный перевод"} (${s.pct} %)</td>
+                <td class="num">≈ ${fmtNum(s.orders)}</td>
+                <td class="num">${fmtSigned(s.net)}</td>
+                <td class="num">${fmtSignedMln(s.netYear)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  /* ==================== 6. СЕЙЧАС vs ПОСЛЕ (Freedom) ==================== */
+  let nowAfter = "";
+  if (isFreedom) {
+    const acquiringRate = state.acquiring?.rate ?? 2;
+    nowAfter = `
+      <div class="sec-block">
+        <div class="sec-label">После интеграции с Freedom</div>
+        <div class="sec-title">Следующий уровень партнёрства</div>
+
+        <div class="compare-block">
+          <div class="cb-labels">
+            <div class="l">Эквайринг</div>
+            <div class="l">Абонплата за платные продукты*</div>
+            <div class="l">Кэшбек Freedom для гостей</div>
+            <div class="l">Оцифровка гостей</div>
+            <div class="l">Digital-канал</div>
+          </div>
+          <div class="cb-side now">
+            <div class="side-label">Сейчас</div>
+            <div class="row">${acquiringRate}%<small>по всем картам</small></div>
+            <div class="row">Полная стоимость<small>по прайсу</small></div>
+            <div class="row">до 6%<small>базовый Freedom</small></div>
+            <div class="row">Базовая<small>по своим каналам</small></div>
+            <div class="row">Собственные ресурсы</div>
+          </div>
+          <div class="cb-side">
+            <div class="side-label">После</div>
+            <div class="row">0%<small>по картам Kaspi при Freedom-счёте</small></div>
+            <div class="row">0 ₸<small>Авто-подтягивание, Без Официанта, Без Кассира</small></div>
+            <div class="row">до 17%<small>механика для повторных визитов</small></div>
+            <div class="row">Полная база<small>с аналитикой и рассылками</small></div>
+            <div class="row">Доступ к аудитории Freedom</div>
+          </div>
+        </div>
+        <div class="note">* Стоимость трёх продуктов включается в пакет Freedom-счёта. SR Delivery, Программа Лояльности, Киоски и Брендированное приложение — на платной основе.</div>
+      </div>
+    `;
+  }
+
+  /* ==================== 7. PRICING ==================== */
+  const enabledProducts = Object.entries(state.products).filter(([_, p]) => p.enabled);
+
+  const fullAbonNoFreedom = enabledProducts.reduce((sum, [k, p]) => {
+    const base = p.price || 0;
+    const disc = p.discount || 0;
+    const mult = c.productMult(k);
+    return sum + Math.max(0, base - disc) * mult;
+  }, 0);
+
+  const productRows = enabledProducts.map(([k, p]) => {
+    const freeAtFreedom = isFreedomFree(k);
+    const disc = p.discount || 0;
+    const base = p.price || 0;
+    const beforeFreedom = Math.max(0, base - disc);
+    const perUnit = effectivePrice(p, k);
+    const mult = c.productMult(k);
+    const eff = perUnit * mult;
+    const perLoc = isPerLocation(k);
+    const label = escapeHtml(PRODUCT_LABELS[k]);
+
+    const breakdown = perLoc && points > 1
+      ? `${fmtMoney(beforeFreedom)} × ${points} ${pluralPoints(points)}`
+      : perLoc
+        ? (disc > 0 ? `${fmtMoney(base)} − скидка ${fmtMoney(disc)}` : "")
+        : (disc > 0 ? `${fmtMoney(base)} − скидка ${fmtMoney(disc)} · на всю сеть` : `на всю сеть`);
+
+    let cell;
+    if (freeAtFreedom) {
+      cell = `<span class="green">Включено в пакет</span><span class="sub">при Freedom-счёте</span>`;
+    } else if (breakdown) {
+      cell = `<b>${fmtMoney(eff)}</b> / мес<span class="sub">${breakdown}</span>`;
+    } else {
+      cell = `<b>${fmtMoney(eff)}</b> / мес`;
+    }
+    return `<tr><td>${label}</td><td class="num">${cell}</td></tr>`;
+  }).join("");
+
+  const freedomSavesOnAbon = isFreedom && (fullAbonNoFreedom > c.monthlyAbon);
+  const totalCell = freedomSavesOnAbon
+    ? `<span class="strike">${fmtMoney(fullAbonNoFreedom)}</span> → <span class="green">${fmtMoney(c.monthlyAbon)}</span> / мес`
+    : `<b>${fmtMoney(c.monthlyAbon)}</b> / мес`;
+
+  const setupTotal = state.setup * points;
+  const setupBreakdown = points > 1 ? `${fmtMoney(state.setup)} × ${points} ${pluralPoints(points)}` : "";
+  const setupRow = isFreedom
+    ? `<tr><td>Подключение (разово)</td><td class="num"><span class="strike">${fmtMoney(setupTotal)}</span> → <span class="green">0 ₸</span> — при Freedom${setupBreakdown ? `<span class="sub">${setupBreakdown}</span>` : ""}</td></tr>`
+    : `<tr><td>Подключение (разово)</td><td class="num"><b>${fmtMoney(setupTotal)}</b>${setupBreakdown ? `<span class="sub">${setupBreakdown}</span>` : ""}</td></tr>`;
+
+  const acquiringRate = state.acquiring?.rate ?? 2;
+  const pricing = `
+    <div class="sec-block">
+      <div class="sec-label">Стоимость пакета</div>
+      <div class="sec-title">Условия партнёрства</div>
+
+      <div class="cond-cards">
+        <div class="cond-card">
+          <div class="cond-num">Freedom</div>
+          <div class="cond-label">Открытие Freedom-счёта</div>
+          <div class="cond-note">Обязательное условие партнёрства. Подключение — 0 ₸, три продукта включаются бесплатно.</div>
+        </div>
+        <div class="cond-card">
+          <div class="cond-num">${acquiringRate}%</div>
+          <div class="cond-label">Эквайринг</div>
+          <div class="cond-note">На все карты банков — Kaspi, Halyk, BCC, Jusan и другие. Единая ставка.</div>
+        </div>
+      </div>
+
+      <table class="tbl">
+        <thead><tr><th>Позиция</th><th class="num">Условие</th></tr></thead>
+        <tbody>
+          ${productRows}
+          <tr class="row-hi"><td>Итого абонплата (${enabledProducts.length} продукт${enabledProducts.length >= 2 && enabledProducts.length <= 4 ? "а" : enabledProducts.length === 1 ? "" : "ов"})</td><td class="num">${totalCell}</td></tr>
+          ${setupRow}
+          <tr><td>Эквайринг на все карты банков — Kaspi, Halyk, BCC, Jusan и другие</td><td class="num"><b>${acquiringRate} %</b></td></tr>
+          ${isFreedom ? `<tr><td>Аналитика по всем гостям (отчёт по предпочтениям, популярным позициям, отзывам через наш сервис, периодичность посещения)</td><td class="num"><span class="green">Включено</span></td></tr>` : ""}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  /* ==================== 8. NEXT STEP ==================== */
+  const nextStep = `
+    <div class="sec-block">
+      <div class="sec-label warn">Следующий шаг</div>
+      <div class="sec-title small">Согласовать техническую модель интеграции</div>
+      <div class="accent-line"></div>
+      ${renderContact()}
+    </div>
+  `;
+
+  /* ==================== FOOTER ==================== */
+  const footer = `
+    <div class="kp-foot">
+      <div class="footer-brand">${escapeHtml(partnerName)} · <span>Freedom Restaurants</span></div>
+      <div>КП сформировано ${kpDate || "автоматически"}</div>
+    </div>
+  `;
+
+  /* ==================== ASSEMBLE ==================== */
+  const html = `
+    ${cover}
+    ${execSummary}
+    ${productSlides}
+    ${deliveryEcon}
+    ${nowAfter}
+    ${pricing}
+    ${nextStep}
+    ${footer}
+  `;
+
+  document.getElementById("preview").innerHTML = html;
+  document.title = `КП — ${state.partner.name || "Freedom Restaurants"}`;
+}
+
+
+/* ---------- PDF export (html2canvas + jsPDF) ---------- */
+const A4_W_PX = 794;   // A4 width  @ 96dpi
+const A4_H_PX = 1123;  // A4 height @ 96dpi
+const PDF_PAD = 44;    // vertical padding inside each page
+
+function pdfStatus(text) {
+  const el = document.getElementById("pdf-status");
+  if (el) el.textContent = text;
+}
+function pdfOverlay(on) {
+  document.getElementById("pdf-overlay").classList.toggle("on", on);
+}
+
+async function downloadPdf() {
+  if (typeof html2canvas === "undefined" || !window.jspdf) {
+    alert("Библиотеки для PDF не загрузились. Проверь интернет и обнови страницу (Ctrl+F5).");
+    return;
+  }
+
+  const source = document.getElementById("preview");
+  if (!source || !source.children.length) return;
+
+  pdfOverlay(true);
+  pdfStatus("Раскладываем по страницам…");
+  await new Promise(r => setTimeout(r, 50));
+
+  const stage = document.getElementById("pdf-stage");
+  stage.innerHTML = "";
+
+  // Measuring container — same width/padding as a real page
+  const probe = document.createElement("div");
+  probe.className = "preview-shell pdf-page";
+  probe.style.height = "auto";
+  stage.appendChild(probe);
+
+  const maxContent = A4_H_PX - PDF_PAD * 2;
+  const blocks = Array.from(source.children).map(n => n.cloneNode(true));
+
+  // Pack blocks into pages
+  const pages = [];
+  let current = [];
+  let currentH = 0;
+
+  for (const block of blocks) {
+    probe.innerHTML = "";
+    probe.appendChild(block.cloneNode(true));
+    const h = probe.scrollHeight - PDF_PAD * 2;
+
+    if (h > maxContent) {
+      // Block taller than a page — flush current, give it its own page
+      if (current.length) { pages.push(current); current = []; currentH = 0; }
+      pages.push([block]);
+      continue;
+    }
+    if (currentH + h > maxContent && current.length) {
+      pages.push(current);
+      current = [];
+      currentH = 0;
+    }
+    current.push(block);
+    currentH += h;
+  }
+  if (current.length) pages.push(current);
+
+  probe.remove();
+
+  // Render each page
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [A4_W_PX, A4_H_PX] });
+
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      pdfStatus(`Рендерим страницу ${i + 1} из ${pages.length}…`);
+      await new Promise(r => setTimeout(r, 30));
+
+      const pageEl = document.createElement("div");
+      pageEl.className = "preview-shell pdf-page";
+      pageEl.style.minHeight = A4_H_PX + "px";
+      pages[i].forEach(b => pageEl.appendChild(b));
+      stage.appendChild(pageEl);
+
+      const canvas = await html2canvas(pageEl, {
+        scale: 2,
+        backgroundColor: getComputedStyle(document.documentElement)
+          .getPropertyValue("--f-bg").trim() || "#0a0f0d",
+        logging: false,
+        useCORS: true,
+        windowWidth: A4_W_PX
+      });
+
+      const img = canvas.toDataURL("image/jpeg", 0.92);
+      if (i > 0) pdf.addPage([A4_W_PX, A4_H_PX], "portrait");
+
+      // Fit image to page width; clip height to page
+      const imgH = (canvas.height / canvas.width) * A4_W_PX;
+      pdf.addImage(img, "JPEG", 0, 0, A4_W_PX, Math.min(imgH, A4_H_PX));
+
+      pageEl.remove();
+    }
+
+    pdfStatus("Сохраняем…");
+    const safe = (state.partner.name || "КП").replace(/[\\/:*?"<>|]/g, "-");
+    pdf.save(`КП — ${safe}.pdf`);
+  } catch (err) {
+    console.error(err);
+    alert("Не удалось собрать PDF: " + err.message);
+  } finally {
+    stage.innerHTML = "";
+    pdfOverlay(false);
+  }
+}
+
+/* ---------- Download standalone HTML ---------- */
+function downloadHtml() {
+  const previewHtml = document.getElementById("preview").innerHTML;
+  // Extract only the preview-related CSS by grabbing the inline <style> and
+  // filtering to the .preview-shell scope. Simpler: inline a known stylesheet.
+  const standalone = buildStandaloneHtml(previewHtml);
+  const blob = new Blob([standalone], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const safe = (state.partner.name || "kp").replace(/[\\/:*?"<>|]/g, "-");
+  a.download = `КП — ${safe}.html`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+
+function buildStandaloneHtml(previewHtml) {
+  // Strip the .preview-shell wrapper class scoping so the file renders standalone
+  const stripped = previewHtml.replace(/preview-shell\s*/g, "");
+
+  // Self-contained stylesheet for the printed KP only
+  const css = `
+    :root{
+      --f-bg:#0a0f0d;--f-bg-2:#0e1512;--f-card:#131e17;--f-card-2:#182922;
+      --f-border:rgba(15,223,122,0.15);--f-border-2:rgba(255,255,255,0.06);
+      --f-green:#0FDF7A;--f-green-dark:#0BA55A;--f-green-soft:rgba(15,223,122,0.10);--f-green-glow:rgba(15,223,122,0.25);
+      --f-text:#ffffff;--f-text-muted:#98a29c;--f-text-dim:#6b7973;
+      --f-warn:#FFB020;--f-accent-1:#FF6B2C;--f-accent-2:#FFB020;
+    }
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    html,body{margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;color:var(--f-text);background:var(--f-bg);line-height:1.4;font-size:10.5pt;max-width:1000px;margin:0 auto;padding:32px 40px 40px}
+    .page{max-width:1000px;margin:0 auto;padding:32px 40px 40px;background:var(--f-bg)}
+
+    .kp-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .kp-topbar-left{display:inline-flex;align-items:center;gap:10px;padding:6px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--f-border-2);border-radius:20px}
+    .kp-topbar-left .dot-y{width:7px;height:7px;border-radius:50%;background:var(--f-warn)}
+    .kp-topbar-left .label{font-size:9pt;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--f-text)}
+    .kp-topbar-right{font-size:10pt;color:var(--f-text-muted);display:flex;align-items:center;gap:8px}
+    .kp-topbar-right .f-logo{width:24px;height:28px;object-fit:contain;display:block}
+    .kp-topbar-right .f-word{font-size:12pt;font-weight:800;letter-spacing:.02em;color:var(--f-text)}
+
+    .kp-cover{padding:32px 0 24px;border-bottom:1px solid var(--f-border-2);margin-bottom:24px}
+    .kp-cover .cover-partner{font-size:34pt;font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:0 0 10px;text-transform:uppercase}
+    .kp-cover .cover-sub{display:flex;align-items:center;gap:10px;font-size:16pt;font-weight:700;color:var(--f-green);margin-bottom:14px}
+    .kp-cover .cover-sub::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--f-green)}
+    .kp-cover .cover-line{height:2px;width:60%;background:linear-gradient(90deg,var(--f-accent-1),var(--f-accent-2),transparent);margin-bottom:16px}
+    .kp-cover .cover-tag{font-size:12pt;color:var(--f-text-muted);line-height:1.5;max-width:700px}
+    .kp-cover .cover-meta{display:flex;gap:26px;margin-top:16px;font-size:9pt;flex-wrap:wrap}
+    .kp-cover .cover-meta .m{display:flex;flex-direction:column;gap:2px}
+    .kp-cover .cover-meta .m .k{color:var(--f-text-dim);text-transform:uppercase;letter-spacing:.08em;font-size:7.5pt;font-weight:600}
+    .kp-cover .cover-meta .m .v{color:var(--f-text);font-weight:600}
+
+    .sec-block{margin:0 0 30px;page-break-inside:avoid}
+    .sec-label{display:inline-flex;align-items:center;gap:8px;font-size:9pt;text-transform:uppercase;letter-spacing:.14em;font-weight:700;color:var(--f-text);margin-bottom:10px}
+    .sec-label::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--f-green)}
+    .sec-label.warn::before{background:var(--f-warn)}
+    .sec-title{font-size:22pt;font-weight:800;line-height:1.1;letter-spacing:-.015em;margin:0 0 14px;color:var(--f-text)}
+    .sec-title.small{font-size:16pt}
+    .sec-lead{font-size:11pt;color:var(--f-text-muted);line-height:1.5;max-width:800px;margin:0 0 16px}
+    .sec-lead b,.sec-lead strong{color:var(--f-text);font-weight:600}
+    .sec-outro{font-size:11pt;line-height:1.5;margin:12px 0 0;color:var(--f-text)}
+    .sec-outro .accent{color:var(--f-green);font-weight:700}
+
+    .num-cards{display:grid;gap:10px;margin:10px 0 16px}
+    .num-cards.n2{grid-template-columns:1fr 1fr}
+    .num-cards.n3{grid-template-columns:repeat(3,1fr)}
+    .num-cards.n4{grid-template-columns:repeat(4,1fr)}
+    .num-cards.n5{grid-template-columns:repeat(5,1fr)}
+    .num-cards.n6{grid-template-columns:repeat(3,1fr)}
+    .num-cards.n7{grid-template-columns:repeat(4,1fr)}
+    .num-card{background:var(--f-card);border:1px solid var(--f-border);border-radius:12px;padding:14px 12px;display:flex;flex-direction:column;gap:6px}
+    .num-card .num{font-size:18pt;font-weight:800;color:var(--f-green);letter-spacing:-.02em;line-height:1}
+    .num-card .h{font-size:10pt;font-weight:700;color:var(--f-text);line-height:1.25}
+    .num-card .t{font-size:8.5pt;color:var(--f-text-muted);line-height:1.4}
+
+    .fx-cards{display:grid;gap:10px;margin:10px 0 16px}
+    .fx-cards.n2{grid-template-columns:1fr 1fr}
+    .fx-cards.n3{grid-template-columns:repeat(3,1fr)}
+    .fx-cards.n4{grid-template-columns:repeat(4,1fr)}
+    .fx-card{background:var(--f-card);border:1px solid var(--f-border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:5px}
+    .fx-card .fx-dot{width:6px;height:6px;border-radius:50%;background:var(--f-green);margin-bottom:2px}
+    .fx-card .h{font-size:10pt;font-weight:700;color:var(--f-text);line-height:1.25}
+    .fx-card .t{font-size:8.5pt;color:var(--f-text-muted);line-height:1.4}
+
+    .big-num{background:var(--f-card);border:1px solid var(--f-border);border-radius:14px;padding:22px 24px;margin:10px 0 16px}
+    .big-num .n{font-size:44pt;font-weight:800;color:var(--f-green);letter-spacing:-.03em;line-height:1;display:inline-block}
+    .big-num .n .star{color:var(--f-green);font-size:26pt;vertical-align:super}
+    .big-num .l{font-size:11pt;color:var(--f-text-muted);margin-top:10px;line-height:1.5;max-width:700px}
+    .big-num .l b{color:var(--f-text);font-weight:600}
+
+    .now-after{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 16px}
+    .now-after>div{background:var(--f-card);border:1px solid var(--f-border);border-radius:12px;padding:18px 20px;min-height:150px;display:flex;flex-direction:column}
+    .now-after .side.after{border-color:var(--f-green)}
+    .now-after .side-label{font-size:9pt;text-transform:uppercase;letter-spacing:.14em;font-weight:700;color:var(--f-text-muted);margin-bottom:8px}
+    .now-after .side.after .side-label{color:var(--f-green)}
+    .now-after .side-num{font-size:28pt;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--f-text);margin-bottom:6px}
+    .now-after .side.after .side-num{color:var(--f-green)}
+    .now-after .side-cap{font-size:10pt;color:var(--f-text-muted);margin-bottom:auto;line-height:1.4}
+    .now-after .side-note{font-size:9pt;color:var(--f-text-dim);line-height:1.4;margin-top:12px}
+
+    .compare-block{display:grid;grid-template-columns:120px 1fr 1fr;gap:10px;margin:10px 0 16px}
+    .compare-block .cb-labels{display:flex;flex-direction:column;padding-top:52px}
+    .compare-block .cb-labels .l{padding:14px 0;font-size:10pt;font-weight:700;color:var(--f-text);text-align:right;border-bottom:1px dashed var(--f-border-2);line-height:1.3}
+    .compare-block .cb-labels .l:last-child{border-bottom:0}
+    .compare-block .cb-side{background:var(--f-green);color:#0a0f0d;border-radius:16px;padding:20px 22px}
+    .compare-block .cb-side.now{background:#cfefdf}
+    .compare-block .cb-side .side-label{font-size:14pt;font-weight:800;letter-spacing:.02em;text-transform:uppercase;margin-bottom:16px}
+    .compare-block .cb-side .row{padding:14px 0;font-size:11pt;font-weight:700;border-bottom:1px dashed rgba(10,15,13,.15);line-height:1.35}
+    .compare-block .cb-side .row:last-child{border-bottom:0}
+    .compare-block .cb-side .row small{display:block;font-size:8.5pt;font-weight:500;opacity:.75;margin-top:3px}
+
+    .cond-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 16px}
+    .cond-card{background:var(--f-card);border:1px solid var(--f-green);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:5px}
+    .cond-card .cond-num{font-size:28pt;font-weight:800;color:var(--f-green);letter-spacing:-.02em;line-height:1}
+    .cond-card .cond-label{font-size:10pt;font-weight:700;color:var(--f-text);margin-top:3px}
+    .cond-card .cond-note{font-size:9pt;color:var(--f-text-muted);line-height:1.45;margin-top:3px}
+
+    .product-hero{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;margin-bottom:12px}
+    .product-hero-content{min-width:0}
+    .product-hero-icon{width:96px;height:96px;background:var(--f-card-2);border:1px solid var(--f-green);border-radius:18px;display:grid;place-items:center;color:var(--f-green)}
+    .product-hero-icon svg{width:70%;height:70%}
+
+    table.tbl{width:100%;border-collapse:collapse;font-size:10pt;margin:0 0 12px;background:var(--f-card);border:1px solid var(--f-border);border-radius:10px;overflow:hidden}
+    table.tbl th,table.tbl td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--f-border-2)}
+    table.tbl tr:last-child td{border-bottom:0}
+    table.tbl th{font-size:8pt;text-transform:uppercase;letter-spacing:.1em;color:var(--f-text-muted);font-weight:700;background:rgba(255,255,255,0.02)}
+    table.tbl tr.row-hi td{background:var(--f-green-soft);color:var(--f-green);font-weight:700}
+    table.tbl td.num,table.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+    table.tbl td b{color:var(--f-text);font-weight:700}
+    table.tbl td .sub{display:block;font-size:8.5pt;color:var(--f-text-dim);font-weight:500;margin-top:2px}
+    table.tbl td .strike{text-decoration:line-through;color:var(--f-text-dim);font-weight:500}
+    table.tbl td .green{color:var(--f-green);font-weight:700}
+
+    .mini-h{font-weight:700;font-size:10pt;margin:0 0 6px;color:var(--f-green);text-transform:uppercase;letter-spacing:.08em}
+    .row-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 16px}
+    .note{font-size:9pt;color:var(--f-text-muted);margin:6px 0 12px;line-height:1.5}
+    .accent-line{height:2px;width:120px;background:linear-gradient(90deg,var(--f-accent-1),var(--f-accent-2));margin:12px 0 16px}
+
+    .contact-block{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--f-card);border:1px solid var(--f-border);border-radius:12px;padding:16px 20px;margin-top:16px}
+    .contact-block .av{width:46px;height:46px;border-radius:50%;background:var(--f-green);color:#0a0f0d;display:grid;place-items:center;font-weight:800;font-size:14pt}
+    .contact-block .role{font-size:8.5pt;text-transform:uppercase;letter-spacing:.12em;color:var(--f-text-muted);font-weight:700;margin-bottom:3px}
+    .contact-block .name{font-size:13pt;font-weight:700;color:var(--f-text)}
+    .contact-block .phone{font-size:11pt;color:var(--f-green);font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+
+    .kp-foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--f-border-2);display:flex;justify-content:space-between;font-size:9pt;color:var(--f-text-dim)}
+    .kp-foot .footer-brand span{color:var(--f-green)}
+
+    @page{size:A4 portrait;margin:0}
+    @media print{
+      body{background:var(--f-bg);padding:12mm 11mm;max-width:none}
+      .page{padding:12mm 11mm;max-width:none}
+      .sec-block{page-break-inside:avoid;break-inside:avoid}
+      table.tbl{page-break-inside:auto}
+      table.tbl tr{page-break-inside:avoid}
+      .num-card,.fx-card,.cond-card,.now-after>div,.contact-block{page-break-inside:avoid;break-inside:avoid}
+      .compare-block{page-break-inside:auto;break-inside:auto}
+    }
+    `;
+
+  return `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>КП — ${escapeHtml(state.partner.name)}</title>
+<style>${css}</style>
+</head>
+<body>
+${stripped}
+</body>
+</html>`;
+}
+
+/* ---------- Init ---------- */
+function init() {
+  const appLogo = document.getElementById("app-logo");
+  if (appLogo) appLogo.innerHTML = `<img src="${FREEDOM_LOGO}" alt="Freedom" />`;
+  initFormValues();
+  bindForm();
+  render();
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+
+</body>
+</html>
