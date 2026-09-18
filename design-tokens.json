@@ -1,0 +1,47 @@
+{
+  "_comment": "Дизайн-токены Enterprise-презентации. Цвета в HEX без '#'. Правится в GitHub без деплоя.",
+  "colors": {
+    "bgDark": "0A0F0D",
+    "bgSection": "0E1512",
+    "bgGradientTo": "0F2419",
+    "green": "22E37A",
+    "greenDeep": "02B03F",
+    "cardDark": "154734",
+    "cardDark2": "184D30",
+    "orange": "E5511F",
+    "amber": "FFB020",
+    "textWhite": "FFFFFF",
+    "textMuted": "98A29C",
+    "textDim": "6B7973",
+    "onGreen": "0A0F0D"
+  },
+  "fonts": {
+    "heading": "Arial",
+    "body": "Calibri"
+  },
+  "sizes": {
+    "slideW": 13.333,
+    "slideH": 7.5,
+    "titleCover": 54,
+    "titleSection": 44,
+    "titleSlide": 30,
+    "lead": 15,
+    "cardTitle": 15,
+    "cardText": 11,
+    "badge": 10,
+    "footer": 9,
+    "bigNumber": 40
+  },
+  "layout": {
+    "marginX": 0.7,
+    "marginTop": 0.45,
+    "badgeY": 0.36,
+    "titleY": 1.35,
+    "contentY": 2.6,
+    "footerY": 6.95,
+    "cardRadius": 0.12,
+    "cardGap": 0.22,
+    "underlineW": 3.6,
+    "underlineH": 0.045
+  }
+}
